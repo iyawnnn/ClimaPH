@@ -1,16 +1,16 @@
 # CLIMAPH Tasks
 
 ## Project Setup
-1. Initialize Next.js project with TypeScript
-2. Configure Tailwind CSS and ShadCN UI component library
-3. Set up environment variables for API keys (`NEXT_PUBLIC_OWM_API_KEY`)
-4. Configure ESLint and Prettier for consistent code quality and formatting
-5. Set up Git repository with proper branching strategy (`main` for production, `dev` for development)
-6. Create documentation folders for project planning, architecture, and feature specifications
+1. Initialize Next.js project with TypeScript (DONE)
+2. Configure Tailwind CSS and ShadCN UI component library (DONE)
+3. Set up environment variables for API keys (`NEXT_PUBLIC_OWM_API_KEY`) (DONE)
+4. Configure ESLint and Prettier for consistent code quality and formatting (DONE)
+5. Set up Git repository with proper branching strategy (`main` for production, `dev` for development) (DONE)
+6. Create documentation folders for project planning, architecture, and feature specifications (DONE)
 
 ## API Integration
-7. Set up Next.js API routes to act as proxy endpoints for OpenWeatherMap
-8. Fetch current weather for Philippine cities and provinces
+7. Set up Next.js API routes to act as proxy endpoints for OpenWeatherMap (DONE)
+8. Fetch current weather for Philippine cities and provinces 
 9. Fetch 5-day and 7-day forecast data
 10. Optional: fetch hourly forecast and air quality index
 11. Implement secure storage and usage of API keys via `.env.local`
@@ -35,8 +35,8 @@
 18. Add search functionality:
     - Search by city, province, or region
     - Autocomplete suggestions for faster input
-19. Optional: Interactive Philippine Map:
-    - Users can click on regions to view weather
+19. Interactive Weather Map:
+    - Users can click on regions (cities, provinces) to view weather
     - Color-coded heatmap for temperature or rainfall
 
 ## Advanced Features & Creative Twists
