@@ -1,6 +1,10 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import SearchBar from "@/components/Search/SearchBar";
+import Suggestions from "@/components/Search/Suggestions";
+import WeatherDisplay from "@/components/Weather/WeatherDisplay";
+import Forecast from "@/components/Weather/Forecast";
 import { Button } from "@/components/ui/button";
 
 // --- configuration ---
@@ -40,19 +44,30 @@ export default function Page() {
   const [error, setError] = useState("");
   const [loadingSuggestions, setLoadingSuggestions] = useState(false);
   const [loadingWeather, setLoadingWeather] = useState(false);
+  const [forecastType, setForecastType] = useState<"5-day" | "12-hour">(
+    "5-day"
+  );
+  const [fiveDayForecast, setFiveDayForecast] = useState<any | null>(null);
+  const [twelveHourForecast, setTwelveHourForecast] = useState<any | null>(
+    null
+  );
 
   const debounceTimer = useRef<number | null>(null);
 
+  // Capitalize function to ensure proper formatting
   const capitalize = (s = "") =>
     s
       .split(" ")
       .map((w) => (w ? w[0].toUpperCase() + w.slice(1) : ""))
       .join(" ");
 
-  // FIX: safe display name generator
-  const makeDisplayNameFromComponents = (components: any, formatted?: string) => {
-    if (!components || typeof components !== "object") return formatted || "Philippines";
-
+  // Make display name from components
+  const makeDisplayNameFromComponents = (
+    components: any,
+    formatted?: string
+  ) => {
+    if (!components || typeof components !== "object")
+      return formatted || "Philippines";
     const city =
       components.city ||
       components.town ||
@@ -60,22 +75,17 @@ export default function Page() {
       components.village ||
       components.county ||
       null;
-
     const region = components.state || components.region || null;
-
     if (city && region) return `${city}, ${region}, Philippines`;
     if (city) return `${city}, Philippines`;
     if (region) return `${region}, Philippines`;
-
     return formatted || "Philippines";
   };
 
+  // Cache and TTL management
   const setWithTTL = (key: string, value: any, ttl: number) => {
     try {
-      localStorage.setItem(
-        key,
-        JSON.stringify({ ts: Date.now(), ttl, value })
-      );
+      localStorage.setItem(key, JSON.stringify({ ts: Date.now(), ttl, value }));
     } catch {}
   };
 
@@ -94,25 +104,31 @@ export default function Page() {
     }
   };
 
-  // FIX: suggestion validator
   const isValidSuggestion = (s: any) => {
     if (!s) return false;
-    if (!s.geometry || typeof s.geometry.lat !== "number" || typeof s.geometry.lng !== "number")
+    if (
+      !s.geometry ||
+      typeof s.geometry.lat !== "number" ||
+      typeof s.geometry.lng !== "number"
+    )
       return false;
     if (!s.components || Object.keys(s.components).length === 0) return false;
     return true;
   };
 
+  // Fetch suggestions from OpenCage API
   const fetchSuggestions = async (q: string) => {
     if (!q.trim()) {
       setSuggestions([]);
       return;
     }
+
     setError("");
     setLoadingSuggestions(true);
 
     const cacheKey = `oc_suggestions_${q.toLowerCase()}`;
     const cached = getWithTTL(cacheKey);
+
     if (cached) {
       setSuggestions(cached);
       setLoadingSuggestions(false);
@@ -139,15 +155,17 @@ export default function Page() {
         return;
       }
 
-      // FIX: filter out empty component results BEFORE mapping
       const cleanedResults = data.results.filter(isValidSuggestion);
 
       const mapped: Suggestion[] = cleanedResults
         .map((r: any, idx: number) => {
           const components = r.components || {};
           const place_type = components._type || r._type || "";
+
           return {
-            id: r.annotations?.geohash || `${place_type}-${r.geometry.lat}-${r.geometry.lng}-${idx}`,
+            id:
+              r.annotations?.geohash ||
+              `${place_type}-${r.geometry.lat}-${r.geometry.lng}-${idx}`,
             display: makeDisplayNameFromComponents(components, r.formatted),
             lat: r.geometry.lat,
             lng: r.geometry.lng,
@@ -160,12 +178,12 @@ export default function Page() {
           return acc;
         }, []);
 
+      // Remove duplicates
       const preferred = mapped.filter((m) =>
         ACCEPTED_PLACE_TYPES.has(m.place_type.toLowerCase())
       );
 
       const final = preferred.length > 0 ? preferred : mapped;
-
       setSuggestions(final);
       setWithTTL(cacheKey, final, SUGGESTIONS_TTL);
     } catch (e) {
@@ -191,7 +209,6 @@ export default function Page() {
     debouncedFetch(val);
   };
 
-  // FIX: prevent selecting invalid suggestions
   const pickSuggestion = (s: Suggestion) => {
     if (
       !s ||
@@ -203,13 +220,12 @@ export default function Page() {
       setError("This location has incomplete data. Please choose another.");
       return;
     }
-
     setSelected(s);
     setInput(s.display);
-    setSuggestions([]);
+    setSuggestions([]); // Clear suggestions after pick
   };
 
-  // FIX: protect getWeather() from empty components
+  // Fetch current weather and 5-Day forecast
   const getWeather = async () => {
     setError("");
     setWeather(null);
@@ -243,6 +259,7 @@ export default function Page() {
 
         const res = await fetch(url);
         const data = await res.json();
+
         const r = data?.results?.[0];
 
         if (!isValidSuggestion(r)) {
@@ -263,6 +280,7 @@ export default function Page() {
 
     const wkey = `owm_${lat.toFixed(4)}_${lng.toFixed(4)}`;
     const cached = getWithTTL(wkey);
+
     if (cached) {
       setWeather({ ...cached, displayName });
       return;
@@ -275,8 +293,8 @@ export default function Page() {
 
     try {
       setLoadingWeather(true);
-
       const url = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lng}&appid=${OWM_KEY}&units=metric`;
+
       const res = await fetch(url);
       const json = await res.json();
 
@@ -296,60 +314,146 @@ export default function Page() {
     }
   };
 
-  useEffect(() => {
-    const handler = (e: MouseEvent) => {
-      const el = e.target as HTMLElement;
-      if (!el.closest("input")) setSuggestions([]);
-    };
-    document.addEventListener("click", handler);
-    return () => document.removeEventListener("click", handler);
-  }, []);
+  const get5DayForecast = async () => {
+    setTwelveHourForecast(undefined); // Clear 12-hour forecast
+    setFiveDayForecast(undefined); // Reset previous 5-day forecast before fetching
+
+    if (!OWM_KEY) {
+      setError("Missing OpenWeatherMap API key.");
+      return;
+    }
+
+    let lat: number | undefined;
+    let lng: number | undefined;
+
+    if (selected) {
+      lat = selected.lat;
+      lng = selected.lng;
+    } else {
+      return;
+    }
+
+    try {
+      const url = `https://api.openweathermap.org/data/2.5/forecast?lat=${lat}&lon=${lng}&appid=${OWM_KEY}&units=metric`;
+
+      const res = await fetch(url);
+      const json = await res.json();
+
+      if (!res.ok) {
+        setError(json?.message || "Error fetching forecast.");
+        return;
+      }
+
+      const forecast = json.list;
+      const summarizedForecast = forecast.reduce((acc: any, curr: any) => {
+        const day = new Date(curr.dt * 1000).toLocaleDateString("en-US", {
+          month: "long",
+          day: "numeric",
+        });
+
+        if (!acc[day]) {
+          acc[day] = { high: -Infinity, low: Infinity, description: "" };
+        }
+
+        acc[day].high = Math.max(acc[day].high, curr.main.temp_max);
+        acc[day].low = Math.min(acc[day].low, curr.main.temp_min);
+
+        if (!acc[day].description) {
+          acc[day].description = capitalize(curr.weather[0].description);
+        }
+
+        return acc;
+      }, {});
+
+      setFiveDayForecast(summarizedForecast); // Make sure the state is updated properly
+    } catch (error) {
+      setError("Error fetching 5-day forecast.");
+    }
+  };
+
+  const get12HourForecast = async () => {
+    setFiveDayForecast(undefined); // Clear the 5-day forecast
+    setTwelveHourForecast(undefined); // Reset 12-hour forecast before fetching
+
+    if (!OWM_KEY) {
+      setError("Missing OpenWeatherMap API key.");
+      return;
+    }
+
+    let lat: number | undefined;
+    let lng: number | undefined;
+
+    if (selected) {
+      lat = selected.lat;
+      lng = selected.lng;
+    } else {
+      return;
+    }
+
+    try {
+      const url = `https://api.openweathermap.org/data/2.5/forecast?lat=${lat}&lon=${lng}&appid=${OWM_KEY}&units=metric`;
+
+      const res = await fetch(url);
+      const json = await res.json();
+
+      if (!res.ok) {
+        setError(json?.message || "Error fetching 12-hour forecast.");
+        return;
+      }
+
+      // Ensure we get data from the first 4 time slots for 12 hours
+      const forecast = json.list.slice(0, 4);
+      console.log("12-hour forecast data:", forecast); // Log data to verify
+      setTwelveHourForecast(forecast); // Correctly update state
+    } catch (error) {
+      setError("Error fetching 12-hour forecast.");
+    }
+  };
 
   return (
     <div className="p-4 max-w-md">
       <h1 className="text-xl font-semibold mb-3">ClimaPH</h1>
-
-      <div className="flex gap-2">
-        <input
-          value={input}
-          onChange={(e) => onChange(e.target.value)}
-          placeholder="Enter city or province"
-          className="p-2 border rounded flex-1"
+      <SearchBar
+        input={input}
+        onChange={(e) => onChange(e.target.value)}
+        getWeather={getWeather}
+        loadingWeather={loadingWeather}
+      />
+      {loadingSuggestions && <p>Searching…</p>}
+      {suggestions.length > 0 && (
+        <Suggestions
+          suggestions={suggestions}
+          pickSuggestion={pickSuggestion}
         />
-        <Button onClick={getWeather}>
-          {loadingWeather ? "Loading..." : "Get Weather"}
+      )}
+      <WeatherDisplay weather={weather} error={error} />
+
+      <div className="flex gap-4 mt-6">
+        <Button
+          onClick={() => {
+            setForecastType("5-day");
+            get5DayForecast();
+          }}
+          className="flex-1"
+        >
+          5-Day Forecast
+        </Button>
+        <Button
+          onClick={() => {
+            setForecastType("12-hour");
+            get12HourForecast();
+          }}
+          className="flex-1"
+        >
+          12-Hour Forecast
         </Button>
       </div>
 
-      {loadingSuggestions && <p>Searching…</p>}
-
-      {suggestions.length > 0 && (
-        <ul className="border rounded mt-2 max-h-56 overflow-auto">
-          {suggestions.map((s) => (
-            <li
-              key={s.id}
-              className="p-2 hover:bg-slate-100 cursor-pointer"
-              onClick={() => pickSuggestion(s)}
-            >
-              {s.display}
-            </li>
-          ))}
-        </ul>
-      )}
-
-      {error && <p className="text-red-600 mt-3">{error}</p>}
-
-      {weather && (
-        <div className="mt-4 border rounded p-3">
-          <h3 className="font-bold">{weather.displayName}</h3>
-          <p className="capitalize">
-            {capitalize(weather.weather?.[0]?.description || "")}
-          </p>
-          <p className="text-lg">{Math.round(weather.main?.temp)}°C</p>
-          <p className="text-sm text-muted-foreground">
-            Humidity: {weather.main?.humidity}% • Wind: {weather.wind?.speed} m/s
-          </p>
-        </div>
+      {/* Conditional rendering of forecasts */}
+      {forecastType === "5-day" ? (
+        <Forecast forecast={fiveDayForecast} type="5-day" />
+      ) : (
+        <Forecast forecast={twelveHourForecast} type="12-hour" />
       )}
     </div>
   );
