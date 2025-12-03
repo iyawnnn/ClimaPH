@@ -1,12 +1,8 @@
 import { NextResponse } from "next/server";
+import { CONFIG } from "../../../constants";
 
 // In-memory cache for geocode and weather results
-// Keys are the query string or coordinates; values contain the data and timestamp
 const cache: Record<string, { ts: number; value: any }> = {};
-
-// Cache TTLs (in milliseconds)
-const GEOCODE_TTL = 24 * 60 * 60 * 1000; // 24 hours for geocoding
-const WEATHER_TTL = 10 * 60 * 1000; // 10 minutes for weather
 
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
@@ -30,9 +26,9 @@ export async function GET(req: Request) {
     // ----- 1️⃣ Check Geocode Cache -----
     const geoCacheKey = `geocode_${query.toLowerCase()}`;
     const cachedGeo = cache[geoCacheKey];
-    let normalizedLocations: any[];
+    let normalizedLocations: any[] = [];
 
-    if (cachedGeo && Date.now() - cachedGeo.ts < GEOCODE_TTL) {
+    if (cachedGeo && Date.now() - cachedGeo.ts < CONFIG.GEOCODE_TTL) {
       normalizedLocations = cachedGeo.value;
     } else {
       // ----- 2️⃣ Fetch Geocode from OpenCage -----
@@ -75,12 +71,13 @@ export async function GET(req: Request) {
     const weatherCacheKey = `weather_${first.lat.toFixed(4)}_${first.lng.toFixed(4)}`;
     let weatherData: any;
 
-    if (cache[weatherCacheKey] && Date.now() - cache[weatherCacheKey].ts < WEATHER_TTL) {
+    if (cache[weatherCacheKey] && Date.now() - cache[weatherCacheKey].ts < CONFIG.WEATHER_TTL) {
       weatherData = cache[weatherCacheKey].value;
     } else {
-      // ----- 6️⃣ Fetch Weather from OpenWeatherMap -----
-      const weatherUrl = `https://api.openweathermap.org/data/2.5/weather?lat=${first.lat}&lon=${first.lng}&appid=${owKey}&units=metric`;
-      const weatherRes = await fetch(weatherUrl);
+      // ----- 6️⃣ Fetch 5-Day Forecast from OpenWeatherMap -----
+      const forecastUrl = `https://api.openweathermap.org/data/2.5/forecast?lat=${first.lat}&lon=${first.lng}&appid=${owKey}&units=metric`;
+
+      const weatherRes = await fetch(forecastUrl);
       weatherData = await weatherRes.json();
 
       if (!weatherRes.ok) {
