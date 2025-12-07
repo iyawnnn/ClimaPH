@@ -8,9 +8,14 @@ import Forecast from "@/components/Weather/Forecast";
 import { Button } from "@/components/ui/button";
 import { useSearch } from "@/hooks/useSearch";
 import { useWeather } from "@/hooks/useWeather";
+import { toast } from "sonner";
+import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
+import { Spinner } from "@/components/ui/spinner";
+import { ModeToggle } from "@/components/ModeToggle";
 
 export default function Page() {
   const [forecastType, setForecastType] = useState<"5-day" | "12-hour">("5-day");
+  const [unit, setUnit] = useState<"C" | "F">("C"); // <-- unit state
 
   const {
     input,
@@ -39,53 +44,103 @@ export default function Page() {
   const setError = (msg: string) => {
     setSearchError(msg);
     setWeatherError(msg);
+    toast.error(msg);
   };
 
   return (
-    <div className="p-4 max-w-md">
-      <h1 className="text-xl font-semibold mb-3">ClimaPH</h1>
+    <div className="p-4 max-w-md mx-auto relative">
+      {/* Top-right controls: Dark mode + Unit switcher */}
+      <div className="absolute top-4 right-4 flex items-center gap-2">
+        {/* Unit switcher */}
+        <Button
+          variant={unit === "C" ? "default" : "outline"}
+          size="sm"
+          onClick={() => setUnit("C")}
+        >
+          °C
+        </Button>
+        <Button
+          variant={unit === "F" ? "default" : "outline"}
+          size="sm"
+          onClick={() => setUnit("F")}
+        >
+          °F
+        </Button>
+
+        {/* Dark mode toggle */}
+        <ModeToggle />
+      </div>
+
+      <h1 className="text-2xl font-bold mb-4 text-center">ClimaPH</h1>
+
       <SearchBar
         input={input}
         onChange={(e) => onChange(e.target.value)}
         getWeather={getWeather}
         loadingWeather={loadingWeather}
+        hasValidSelection={!!selected}
       />
-      {loadingSuggestions && <p>Searching…</p>}
-      {suggestions.length > 0 && (
-        <Suggestions
-          suggestions={suggestions}
-          pickSuggestion={pickSuggestion}
-        />
+
+      {loadingSuggestions && (
+        <div className="mt-2 flex justify-center">
+          <Spinner className="w-6 h-6" />
+        </div>
       )}
-      <WeatherDisplay weather={weather} error={error} />
+
+      {suggestions.length > 0 && (
+        <Suggestions suggestions={suggestions} pickSuggestion={pickSuggestion} />
+      )}
+
+      <WeatherDisplay weather={weather} error={error} loading={loadingWeather} unit={unit} />
 
       <div className="flex gap-4 mt-6">
-        <Button
-          onClick={() => {
-            setForecastType("5-day");
-            get5DayForecast();
-          }}
-          className="flex-1"
-        >
-          5-Day Forecast
-        </Button>
-        <Button
-          onClick={() => {
-            setForecastType("12-hour");
-            get12HourForecast();
-          }}
-          className="flex-1"
-        >
-          12-Hour Forecast
-        </Button>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant={forecastType === "5-day" ? "default" : "outline"}
+              onClick={() => {
+                setForecastType("5-day");
+                get5DayForecast();
+              }}
+              className="flex-1"
+            >
+              5-Day Forecast
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>View the 5-day weather forecast</p>
+          </TooltipContent>
+        </Tooltip>
+
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant={forecastType === "12-hour" ? "default" : "outline"}
+              onClick={() => {
+                setForecastType("12-hour");
+                get12HourForecast();
+              }}
+              className="flex-1"
+            >
+              12-Hour Forecast
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>View the 12-hour weather forecast</p>
+          </TooltipContent>
+        </Tooltip>
       </div>
 
-      {/* Conditional rendering of forecasts */}
-      {forecastType === "5-day" ? (
-        <Forecast forecast={fiveDayForecast} type="5-day" />
-      ) : (
-        <Forecast forecast={twelveHourForecast} type="12-hour" />
-      )}
+      <Forecast
+        forecast={forecastType === "5-day" ? fiveDayForecast : twelveHourForecast}
+        type={forecastType}
+        unit={unit} // <-- pass unit prop
+        loading={
+          forecastType === "5-day"
+            ? loadingWeather && !fiveDayForecast
+            : loadingWeather && !twelveHourForecast
+        }
+      />
     </div>
   );
 }

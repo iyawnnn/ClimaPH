@@ -20,7 +20,7 @@
 13. Document all API endpoints used, including request parameters and response structures
 
 ## UI & UX Design
-14. Design a responsive, mobile-first dashboard layout
+14. Design a responsive, mobile-first dashboard layout (DONE)
 15. Create **current weather cards** displaying:
     - Temperature
     - Humidity
@@ -32,7 +32,7 @@
     - Temperature trends
     - Rainfall patterns
     - Wind speed/direction
-18. Add search functionality:
+18. Add search functionality: (DONE)
     - Search by city, province, or region
     - Autocomplete suggestions for faster input
 19. Interactive Weather Map:
