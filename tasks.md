@@ -12,9 +12,9 @@
 7. Set up Next.js API routes to act as proxy endpoints for OpenWeatherMap (DONE)
 8. Fetch current weather for Philippine cities and provinces (DONE)
 9. Fetch 5-day 3 hour forecast data (DONE) 
-10. Optional: fetch hourly forecast and air quality index (NOT)
+10. Optional: fetch hourly forecast and air quality index (N/A)
 11. Implement secure storage and usage of API keys via `.env.local` (DONE)
-12. Plan caching strategy to reduce API calls: 
+12. Plan caching strategy to reduce API calls: (DONE)
     - Current weather cached 5–10 minutes
     - Forecast cached 1–2 hours
 13. Document all API endpoints used, including request parameters and response structures
