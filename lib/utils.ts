@@ -1,26 +1,21 @@
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
-import { SUGGESTIONS_TTL, WEATHER_TTL } from "./constants";
 
-// Existing cn function (required for shadcn components like button.tsx)
+// Utility for merging classes (required for ShadCN components)
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-// Capitalize function to ensure proper formatting
+// Capitalize words
 export const capitalize = (s = "") =>
   s
     .split(" ")
     .map((w) => (w ? w[0].toUpperCase() + w.slice(1) : ""))
     .join(" ");
 
-// Make display name from components
-export const makeDisplayNameFromComponents = (
-  components: any,
-  formatted?: string
-) => {
-  if (!components || typeof components !== "object")
-    return formatted || "Philippines";
+// Display name from components
+export const makeDisplayNameFromComponents = (components: any, formatted?: string) => {
+  if (!components || typeof components !== "object") return formatted || "Philippines";
   const city =
     components.city ||
     components.town ||
@@ -35,7 +30,7 @@ export const makeDisplayNameFromComponents = (
   return formatted || "Philippines";
 };
 
-// Cache and TTL management
+// Cache with TTL
 export const setWithTTL = (key: string, value: any, ttl: number) => {
   try {
     localStorage.setItem(key, JSON.stringify({ ts: Date.now(), ttl, value }));
@@ -57,14 +52,10 @@ export const getWithTTL = (key: string) => {
   }
 };
 
+// Validate suggestion from API
 export const isValidSuggestion = (s: any) => {
   if (!s) return false;
-  if (
-    !s.geometry ||
-    typeof s.geometry.lat !== "number" ||
-    typeof s.geometry.lng !== "number"
-  )
-    return false;
+  if (!s.geometry || typeof s.geometry.lat !== "number" || typeof s.geometry.lng !== "number") return false;
   if (!s.components || Object.keys(s.components).length === 0) return false;
   return true;
 };

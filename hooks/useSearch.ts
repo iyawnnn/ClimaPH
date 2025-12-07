@@ -12,7 +12,6 @@ export const useSearch = () => {
 
   const debounceTimer = useRef<number | null>(null);
 
-  // Fetch suggestions from OpenCage API
   const fetchSuggestions = async (q: string) => {
     if (!q.trim()) {
       setSuggestions([]);
@@ -74,7 +73,6 @@ export const useSearch = () => {
           return acc;
         }, []);
 
-      // Remove duplicates
       const preferred = mapped.filter((m) =>
         ACCEPTED_PLACE_TYPES.has(m.place_type.toLowerCase())
       );
@@ -117,7 +115,7 @@ export const useSearch = () => {
     }
     setSelected(s);
     setInput(s.display);
-    setSuggestions([]); // Clear suggestions after pick
+    setSuggestions([]);
   };
 
   return {
@@ -128,6 +126,6 @@ export const useSearch = () => {
     error,
     onChange,
     pickSuggestion,
-    setError, // Expose to allow clearing error from outside
+    setError,
   };
 };
