@@ -44,9 +44,9 @@
 21. Implement local alerts/notifications for extreme weather events (rain, storms, high temperature)
 22. Implement favorites & user profiles for saving preferred locations
 23. Add gamification: badges or rewards for checking multiple regions or logging daily weather
-24. Add dark/light mode toggle
-25. Add temperature and unit switcher (°C/°F, km/h or mph for wind)
-26. Optional: display additional info per location:
+24. Add dark/light mode toggle (DONE)
+25. Add temperature and unit switcher (°C/°F, km/h or mph for wind) (DONE)
+26. Optional: display additional info per location: (N/A)
     - Sunrise/sunset
     - UV index
     - Moon phase
