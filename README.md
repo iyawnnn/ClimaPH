@@ -87,7 +87,7 @@ ClimaPH is a high-performance weather forecasting application built using the Ne
 ### 1. Clone the Repository
 
 ```bash
-git clone [https://github.com/iyawnnn/ClimaPH.git](https://github.com/iyawnnn/ClimaPH.git)
+git clone https://github.com/iyawnnn/ClimaPH
 cd ClimaPH
 ```
 
