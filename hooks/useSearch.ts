@@ -1,121 +1,60 @@
-import { useEffect, useRef, useState } from "react";
-import { Suggestion } from "@/types";
-import { OPENCAGE_KEY, SUGGESTIONS_TTL, ACCEPTED_PLACE_TYPES } from "@/lib/constants";
-import { makeDisplayNameFromComponents, setWithTTL, getWithTTL, isValidSuggestion } from "@/lib/utils";
+import { useState, useEffect } from "react";
+import { Suggestion } from "@/types/types";
+import { OPENCAGE_KEY } from "@/lib/constants";
+import { makeDisplayNameFromComponents, isValidSuggestion } from "@/lib/utils";
 
 export const useSearch = () => {
   const [input, setInput] = useState("");
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
   const [selected, setSelected] = useState<Suggestion | null>(null);
   const [loadingSuggestions, setLoadingSuggestions] = useState(false);
-  const [error, setError] = useState("");
 
-  const debounceTimer = useRef<number | null>(null);
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (input.length > 2 && !selected) {
+        fetchSuggestions(input);
+      } else if (input.length <= 2) {
+        setSuggestions([]);
+      }
+    }, 500);
 
-  const fetchSuggestions = async (q: string) => {
-    if (!q.trim()) {
-      setSuggestions([]);
-      return;
-    }
+    return () => clearTimeout(timer);
+  }, [input, selected]);
 
-    setError("");
+  const fetchSuggestions = async (query: string) => {
+    if (!OPENCAGE_KEY) return;
     setLoadingSuggestions(true);
-
-    const cacheKey = `oc_suggestions_${q.toLowerCase()}`;
-    const cached = getWithTTL(cacheKey);
-
-    if (cached) {
-      setSuggestions(cached);
-      setLoadingSuggestions(false);
-      return;
-    }
-
-    if (!OPENCAGE_KEY) {
-      setError("Missing OpenCage API key.");
-      setLoadingSuggestions(false);
-      return;
-    }
-
     try {
-      const url = `https://api.opencagedata.com/geocode/v1/json?q=${encodeURIComponent(
-        q
-      )}&key=${OPENCAGE_KEY}&countrycode=PH&limit=10`;
-
+      const url = `https://api.opencagedata.com/geocode/v1/json?q=${encodeURIComponent(query)}&key=${OPENCAGE_KEY}&countrycode=PH&limit=5`;
       const res = await fetch(url);
       const data = await res.json();
+      
+      const safeSuggestions = (data.results || [])
+        .filter(isValidSuggestion)
+        .map((r: any) => ({
+          display: makeDisplayNameFromComponents(r.components, r.formatted),
+          lat: r.geometry.lat,
+          lng: r.geometry.lng,
+        }));
 
-      if (!Array.isArray(data.results)) {
-        setSuggestions([]);
-        setLoadingSuggestions(false);
-        return;
-      }
-
-      const cleanedResults = data.results.filter(isValidSuggestion);
-
-      const mapped: Suggestion[] = cleanedResults
-        .map((r: any, idx: number) => {
-          const components = r.components || {};
-          const place_type = components._type || r._type || "";
-
-          return {
-            id:
-              r.annotations?.geohash ||
-              `${place_type}-${r.geometry.lat}-${r.geometry.lng}-${idx}`,
-            display: makeDisplayNameFromComponents(components, r.formatted),
-            lat: r.geometry.lat,
-            lng: r.geometry.lng,
-            components,
-            place_type,
-          };
-        })
-        .reduce((acc, cur) => {
-          if (!acc.some((a) => a.display === cur.display)) acc.push(cur);
-          return acc;
-        }, []);
-
-      const preferred = mapped.filter((m) =>
-        ACCEPTED_PLACE_TYPES.has(m.place_type.toLowerCase())
-      );
-
-      const final = preferred.length > 0 ? preferred : mapped;
-      setSuggestions(final);
-      setWithTTL(cacheKey, final, SUGGESTIONS_TTL);
+      setSuggestions(safeSuggestions);
     } catch (e) {
       console.error(e);
-      setError("Failed to fetch suggestions.");
+      setSuggestions([]);
     } finally {
       setLoadingSuggestions(false);
     }
   };
 
-  const debouncedFetch = (q: string) => {
-    if (debounceTimer.current) clearTimeout(debounceTimer.current);
-    debounceTimer.current = window.setTimeout(() => {
-      fetchSuggestions(q);
-      debounceTimer.current = null;
-    }, 450);
-  };
-
   const onChange = (val: string) => {
     setInput(val);
     setSelected(null);
-    debouncedFetch(val);
   };
 
-  const pickSuggestion = (s: Suggestion) => {
-    if (
-      !s ||
-      typeof s.lat !== "number" ||
-      typeof s.lng !== "number" ||
-      !s.components ||
-      Object.keys(s.components).length === 0
-    ) {
-      setError("This location has incomplete data. Please choose another.");
-      return;
-    }
-    setSelected(s);
-    setInput(s.display);
-    setSuggestions([]);
+  const pickSuggestion = (suggestion: Suggestion) => {
+    setInput(suggestion.display);
+    setSelected(suggestion);
+    setSuggestions([]); 
   };
 
   return {
@@ -123,9 +62,8 @@ export const useSearch = () => {
     suggestions,
     selected,
     loadingSuggestions,
-    error,
     onChange,
     pickSuggestion,
-    setError,
+    setSuggestions, // <--- IMPORTANT: Ensure this is here
   };
 };
