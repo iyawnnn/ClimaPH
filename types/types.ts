@@ -1,10 +1,9 @@
-export type Suggestion = {
-  id: string;
+export interface Suggestion {
   display: string;
   lat: number;
   lng: number;
-  components: any;
-  place_type: string;
-};
-
+  id?: string;
+  components?: any;
+  place_type?: string[];
+}
 export type Unit = "metric" | "imperial";
