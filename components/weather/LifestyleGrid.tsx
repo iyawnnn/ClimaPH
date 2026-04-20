@@ -1,191 +1,134 @@
-import { Card, CardContent } from "@/components/ui/card";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
-import { Thermometer, Shirt, Droplets, Umbrella, Info } from "lucide-react";
+"use client";
 
-type LifestyleGridProps = {
-  weather: any;
-  unit: "C" | "F";
-};
+import { useAppStore } from "@/store/useAppStore";
+import { useWeather } from "@/hooks/useWeather";
+import { Wind, Droplets, Sun, Eye, Thermometer, Gauge } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 
-// Helper for consistency
-const InfoHeader = ({ title, icon: Icon, tooltip }: { title: string; icon: any; tooltip: string }) => (
-  <div className="flex items-center justify-between w-full mb-2">
-    <div className="flex items-center gap-1.5">
-      <span className="text-sm font-medium text-muted-foreground">{title}</span>
-      <TooltipProvider delayDuration={0}>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <div className="cursor-help p-0.5 rounded-full hover:bg-muted transition-colors opacity-50 hover:opacity-100">
-              <Info className="w-3 h-3 text-muted-foreground" />
-            </div>
-          </TooltipTrigger>
-          <TooltipContent className="max-w-[200px] text-xs">
-            {tooltip}
-          </TooltipContent>
-        </Tooltip>
-      </TooltipProvider>
-    </div>
-    <Icon className="w-4 h-4 text-muted-foreground" />
-  </div>
-);
+export default function LifestyleGrid() {
+  const { isCrisisMode, unit } = useAppStore();
+  const { weather, loadingWeather } = useWeather();
 
-export default function LifestyleGrid({ weather, unit }: LifestyleGridProps) {
-  if (!weather) return null;
-
-  const feelsLike = Math.round(
-    unit === "C"
-      ? weather.main.feels_like
-      : (weather.main.feels_like * 9) / 5 + 32
-  );
-
-  const dewPoint = Math.round(
-      unit === "C" 
-      ? weather.main.temp - ((100 - weather.main.humidity) / 5) 
-      : (weather.main.temp - ((100 - weather.main.humidity) / 5) * 9/5 + 32)
-  );
-
-  const isRaining = weather.weather.some((c: any) =>
-    c.main.toLowerCase().includes("rain") || c.main.toLowerCase().includes("drizzle")
-  );
-  const isCloudy = weather.clouds.all > 70;
-
-  // --- LOGIC: Real Feel Status & Color ---
-  let feelStatus = "Comfortable";
-  let feelColor = "text-green-500";
-
-  if (feelsLike >= 36) {
-      feelStatus = "Extreme Caution";
-      feelColor = "text-red-600 font-bold"; // Dark Red for Extreme
-  } else if (feelsLike >= 31) {
-      feelStatus = "Hot";
-      feelColor = "text-red-500"; // Red for Hot
-  } else if (feelsLike >= 26) {
-      feelStatus = "Warm";
-      feelColor = "text-orange-500"; // Orange for Warm
-  } else if (feelsLike < 20) {
-      feelStatus = "Cool";
-      feelColor = "text-blue-500"; // Blue for Cool
+  if (loadingWeather || !weather) {
+    return (
+      <div className="grid grid-cols-2 gap-4 w-full">
+        {Array.from({ length: 6 }).map((_, i) => (
+          <Skeleton key={i} className="h-[130px] rounded-3xl bg-muted/30 border border-border/30" />
+        ))}
+      </div>
+    );
   }
+
+  // Safely traverse the OpenWeatherMap data structure
+  const current = weather.current || weather;
+  const main = current?.main || current;
+  const wind = current?.wind || current;
+
+  const humidity = main?.humidity ?? current?.humidity ?? 0;
+  const windSpeed = wind?.speed ?? current?.wind_kph ?? 0;
   
-  // Logic: Laundry Guide
-  let laundryStatus = "Great Time!";
-  let laundryDesc = "Sunny & clear. Dry clothes fast.";
-  let laundryColor = "text-green-500";
+  // OWM returns visibility in meters; convert to kilometers
+  const visibility = current?.visibility 
+    ? (current.visibility / 1000).toFixed(1) 
+    : (current?.vis_km ?? 0);
+  
+  const rawFeelsLike = main?.feels_like ?? current?.feelslike_c ?? current?.temp ?? 0;
+  const feelsLike = unit === "C" ? Math.round(rawFeelsLike) : Math.round((rawFeelsLike * 9) / 5 + 32);
 
-  if (isRaining) {
-    laundryStatus = "Don't Risk It.";
-    laundryDesc = "Rain is expected. Keep it inside.";
-    laundryColor = "text-red-500";
-  } else if (isCloudy) {
-    laundryStatus = "Decent.";
-    laundryDesc = "Might take longer to dry.";
-    laundryColor = "text-yellow-500";
-  }
+  const pressure = main?.pressure ?? current?.pressure_mb ?? 0;
+  
+  // UV Index typically requires the OneCall API in OWM
+  const uvIndex = current?.uvi ?? current?.uv ?? "N/A";
 
-  // Logic: Umbrella Check
-  let umbrellaStatus = "No Need.";
-  let umbrellaDesc = "Clear skies ahead.";
-  let umbrellaColor = "text-muted-foreground";
-
-  if (isRaining) {
-    umbrellaStatus = "Bring Umbrella!";
-    umbrellaDesc = "Rain is likely. Stay dry.";
-    umbrellaColor = "text-blue-500";
-  } else if (weather.clouds.all > 50) {
-     umbrellaStatus = "Just in Case.";
-     umbrellaDesc = "Cloudy skies, chance of rain.";
-     umbrellaColor = "text-blue-400";
-  } else if (weather.main.temp > 32) {
-      umbrellaStatus = "Use for Sun.";
-      umbrellaDesc = "UV is high. Shield yourself.";
-      umbrellaColor = "text-orange-500";
-  }
+  const metrics = [
+    {
+      label: "UV Index",
+      value: uvIndex.toString(),
+      icon: Sun,
+      description: "Solar radiation",
+    },
+    {
+      label: "Humidity",
+      value: `${humidity}%`,
+      icon: Droplets,
+      description: "Moisture level",
+    },
+    {
+      label: "Wind Speed",
+      value: `${windSpeed} m/s`,
+      icon: Wind,
+      description: "Current velocity",
+    },
+    {
+      label: "Visibility",
+      value: `${visibility} km`,
+      icon: Eye,
+      description: "Clear line of sight",
+    },
+    {
+      label: "Feels Like",
+      value: `${feelsLike}°${unit}`,
+      icon: Thermometer,
+      description: "Perceived heat",
+    },
+    {
+      label: "Pressure",
+      value: `${pressure} hPa`,
+      icon: Gauge,
+      description: "Atmospheric force",
+    }
+  ];
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div className="grid grid-cols-2 gap-4 w-full">
+      {metrics.map((metric, index) => (
+        <MetricCard 
+          key={index}
+          label={metric.label}
+          value={metric.value}
+          icon={metric.icon}
+          description={metric.description}
+          isCrisisMode={isCrisisMode}
+        />
+      ))}
+    </div>
+  );
+}
+
+function MetricCard({ 
+  label, 
+  value, 
+  icon: Icon, 
+  description,
+  isCrisisMode 
+}: { 
+  label: string; 
+  value: string; 
+  icon: React.ElementType; 
+  description: string;
+  isCrisisMode: boolean;
+}) {
+  return (
+    <div className={`
+      relative overflow-hidden rounded-3xl p-5 flex flex-col justify-between h-[130px]
+      bg-muted/30 border border-border/30 transition-all duration-300
+      ${isCrisisMode ? "border-destructive/40 shadow-sm shadow-destructive/10" : "hover:bg-muted/50"}
+    `}>
+      <div className="flex justify-between items-start w-full">
+        <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider font-sans">
+          {label}
+        </span>
+        <Icon className={`w-4 h-4 ${isCrisisMode ? "text-destructive" : "text-primary/70"}`} />
+      </div>
       
-      {/* CARD 1: Real Feel */}
-      <Card>
-        <CardContent className="p-4 flex flex-col justify-between h-full">
-          <InfoHeader 
-            title="Real Feel" 
-            icon={Thermometer} 
-            tooltip="Calculates how the temperature actually feels based on humidity and wind."
-          />
-          <div>
-            <div className="text-2xl font-bold">
-              {feelsLike}°{unit}
-            </div>
-            {/* FIX: Now using variables guaranteed to match */}
-            <p className={`text-xs font-medium mt-1 ${feelColor}`}>
-              {feelStatus}
-            </p>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* CARD 2: Laundry Guide */}
-      <Card>
-        <CardContent className="p-4 flex flex-col justify-between h-full">
-          <InfoHeader 
-            title="Laundry Guide" 
-            icon={Shirt} 
-            tooltip="Advice on drying clothes based on rain probability and sunlight."
-          />
-          <div>
-            <div className={`text-2xl font-bold ${laundryColor}`}>
-              {laundryStatus}
-            </div>
-            <p className="text-xs text-muted-foreground mt-1 line-clamp-1" title={laundryDesc}>
-              {laundryDesc}
-            </p>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* CARD 3: Humidity */}
-      <Card>
-        <CardContent className="p-4 flex flex-col justify-between h-full">
-          <InfoHeader 
-            title="Humidity" 
-            icon={Droplets} 
-            tooltip="The amount of water vapor in the air. High humidity makes it feel hotter."
-          />
-          <div>
-            <div className="text-2xl font-bold">
-              {weather.main.humidity}%
-            </div>
-            <p className="text-xs text-muted-foreground mt-1">
-              Dew point: {dewPoint}°
-            </p>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* CARD 4: Umbrella Check */}
-      <Card>
-        <CardContent className="p-4 flex flex-col justify-between h-full">
-          <InfoHeader 
-            title="Umbrella Check" 
-            icon={Umbrella} 
-            tooltip="Recommendation on whether you need an umbrella for rain or intense sun."
-          />
-          <div>
-            <div className={`text-2xl font-bold ${umbrellaColor}`}>
-              {umbrellaStatus}
-            </div>
-            <p className="text-xs text-muted-foreground mt-1 line-clamp-1 capitalize" title={isRaining ? "Light rain expected" : weather.weather[0].description}>
-               {isRaining ? "Light rain expected" : weather.weather[0].description}
-            </p>
-          </div>
-        </CardContent>
-      </Card>
-
+      <div className="mt-auto">
+        <div className="text-2xl font-semibold tracking-tight text-foreground font-sans">
+          {value}
+        </div>
+        <div className="text-xs text-muted-foreground mt-0.5 truncate">
+          {description}
+        </div>
+      </div>
     </div>
   );
 }

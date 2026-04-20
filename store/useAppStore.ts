@@ -1,24 +1,18 @@
 import { create } from "zustand";
-import type { Suggestion } from "@/types/types";
-
-interface AppState {
-  targetLocation: Suggestion | null;
-  isCrisisMode: boolean;
-  unit: "C" | "F";
-  mapLayer: string;
-  setTargetLocation: (location: Suggestion | null) => void;
-  toggleCrisisMode: () => void;
-  setUnit: (unit: "C" | "F") => void;
-  setMapLayer: (layer: string) => void;
-}
+import { AppState } from "@/types/types"; // Adjust path if necessary
 
 export const useAppStore = create<AppState>((set) => ({
-  targetLocation: null,
+  targetLocation: { 
+    display: "Metro Manila", 
+    lat: 14.5995, 
+    lon: 120.9842 
+  },
   isCrisisMode: false,
   unit: "C",
   mapLayer: "temp_new",
-  setTargetLocation: (loc) => set({ targetLocation: loc }),
+  
+  setTargetLocation: (location) => set({ targetLocation: location }),
   toggleCrisisMode: () => set((state) => ({ isCrisisMode: !state.isCrisisMode })),
   setUnit: (unit) => set({ unit }),
-  setMapLayer: (mapLayer) => set({ mapLayer }),
+  setMapLayer: (layer) => set({ mapLayer: layer }),
 }));

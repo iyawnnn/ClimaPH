@@ -7,68 +7,73 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel";
-import { Card, CardContent } from "@/components/ui/card";
 import { Cloud, CloudRain, Sun, CloudLightning } from "lucide-react";
+import { useWeather } from "@/hooks/useWeather";
+import { useAppStore } from "@/store/useAppStore";
+import { Skeleton } from "@/components/ui/skeleton";
 
-type ForecastCarouselProps = {
-  data: any; // The 5-day forecast object
-  unit: "C" | "F";
+const getWeatherIcon = (desc?: string) => {
+  const safeDesc = (desc || "").toLowerCase();
+  if (safeDesc.includes("rain")) return <CloudRain className="h-6 w-6 text-primary/70" />;
+  if (safeDesc.includes("cloud")) return <Cloud className="h-6 w-6 text-muted-foreground" />;
+  if (safeDesc.includes("thunder")) return <CloudLightning className="h-6 w-6 text-primary/70" />;
+  return <Sun className="h-6 w-6 text-primary/70" />;
 };
 
-// Helper to convert temp
-const convertTemp = (temp: number, unit: "C" | "F") =>
-  unit === "C" ? Math.round(temp) : Math.round((temp * 9) / 5 + 32);
+export default function ForecastCarousel() {
+  const { twelveHourForecast, loadingWeather } = useWeather();
+  const { unit } = useAppStore();
 
-// Helper for Icons
-const getWeatherIcon = (desc: string) => {
-  if (desc.includes("rain")) return <CloudRain className="h-8 w-8 text-blue-500" />;
-  if (desc.includes("cloud")) return <Cloud className="h-8 w-8 text-gray-500" />;
-  if (desc.includes("thunder")) return <CloudLightning className="h-8 w-8 text-purple-500" />;
-  return <Sun className="h-8 w-8 text-yellow-500" />;
-};
+  if (loadingWeather || !twelveHourForecast) {
+    return (
+      <div className="flex gap-4 overflow-hidden w-full">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <Skeleton key={i} className="h-[140px] w-full rounded-3xl bg-muted/30 border border-border/30" />
+        ))}
+      </div>
+    );
+  }
 
-export default function ForecastCarousel({ data, unit }: ForecastCarouselProps) {
-  // Convert object to array for mapping
-  const days = Object.entries(data);
+  if (twelveHourForecast.length === 0) {
+    return (
+      <div className="flex items-center justify-center p-8 text-sm text-muted-foreground">
+        No forecast sequence available.
+      </div>
+    );
+  }
 
   return (
-    <div className="px-10 py-4">
-      <Carousel
-        opts={{
-          align: "start",
-          loop: false,
-        }}
-        className="w-full"
-      >
-        <CarouselContent className="-ml-2 md:-ml-4">
-          {days.map(([date, info]: any, index) => (
-            <CarouselItem key={index} className="pl-2 md:pl-4 basis-1/2 md:basis-1/3 lg:basis-1/4">
-              <Card className="border shadow-sm hover:shadow-md transition-shadow">
-                <CardContent className="flex flex-col items-center justify-center p-4 aspect-square">
-                  <span className="text-sm font-semibold text-muted-foreground mb-2 text-center">
-                    {date}
+    <div className="w-full relative px-2">
+      <Carousel opts={{ align: "start", loop: false }} className="w-full">
+        <CarouselContent className="-ml-4">
+          {twelveHourForecast.map((info: any, index: number) => {
+            const dateObj = new Date(info.dt * 1000);
+            const timeString = info.isCurrent ? "Now" : dateObj.toLocaleTimeString([], { hour: 'numeric' });
+            
+            const rawTemp = info.main?.temp ?? 0;
+            const displayTemp = unit === "C" ? Math.round(rawTemp) : Math.round((rawTemp * 9) / 5 + 32);
+
+            return (
+              <CarouselItem key={index} className="pl-4 basis-1/2 md:basis-1/3 xl:basis-1/4">
+                <div className="flex flex-col items-center justify-center p-5 rounded-3xl bg-muted/30 border border-border/30 h-full hover:bg-muted/50 transition-all duration-300">
+                  <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider font-sans mb-3 text-center">
+                    {timeString}
                   </span>
-                  <div className="mb-2">
-                    {getWeatherIcon(info.description)}
+                  <div className="mb-3">
+                    {getWeatherIcon(info.weather?.[0]?.description)}
                   </div>
-                  <div className="flex gap-2 items-end">
-                    <span className="text-2xl font-bold">
-                      {convertTemp(info.high, unit)}°
-                    </span>
-                    <span className="text-sm text-muted-foreground mb-1">
-                      {convertTemp(info.low, unit)}°
-                    </span>
-                  </div>
-                  <p className="text-xs text-muted-foreground capitalize mt-1 text-center">
-                    {info.description}
-                  </p>
-                </CardContent>
-              </Card>
-            </CarouselItem>
-          ))}
+                  <span className="text-xl font-bold tracking-tight text-foreground font-sans">
+                    {displayTemp}°
+                  </span>
+                </div>
+              </CarouselItem>
+            );
+          })}
         </CarouselContent>
-        <CarouselPrevious />
-        <CarouselNext />
+        <div className="hidden md:block">
+          <CarouselPrevious className="-left-4 bg-background/50 border-border/20" />
+          <CarouselNext className="-right-4 bg-background/50 border-border/20" />
+        </div>
       </Carousel>
     </div>
   );
