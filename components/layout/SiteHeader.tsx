@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Image from "next/image";
+import { motion, AnimatePresence } from "framer-motion";
 import { useAppStore } from "@/store/useAppStore";
 import { useSearch } from "@/hooks/useSearch";
 import { useWeather } from "@/hooks/useWeather";
@@ -12,181 +14,293 @@ import { toast } from "sonner";
 import {
   Dialog,
   DialogContent,
-  DialogHeader,
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { getFavorites } from "@/lib/favorites";
-import { Activity, Locate, Star } from "lucide-react";
+import { Activity, LocateFixed, Star, X, MapPin, Search } from "lucide-react";
 import type { Suggestion } from "@/types/types";
 
 export default function SiteHeader() {
-  const { isCrisisMode, toggleCrisisMode, setTargetLocation, targetLocation } =
-    useAppStore();
+  const { isCrisisMode, toggleCrisisMode, setTargetLocation, targetLocation } = useAppStore();
   const [isLocating, setIsLocating] = useState(false);
   const [favorites, setFavorites] = useState<Suggestion[]>([]);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-  // Load favorites on mount to prevent hydration mismatch
   useEffect(() => {
     setFavorites(getFavorites());
   }, []);
 
-  const { input, suggestions, onChange, pickSuggestion, setSuggestions } =
-    useSearch();
+  useEffect(() => {
+    if (isMenuOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    return () => { document.body.style.overflow = 'unset'; };
+  }, [isMenuOpen]);
 
+  const { input, suggestions, onChange, pickSuggestion, setSuggestions } = useSearch();
   const { getWeather, loadingWeather } = useWeather();
 
   const handleCurrentLocation = () => {
-    if (navigator.geolocation) {
-      setIsLocating(true);
-      toast.info("Locating you...");
-
-      navigator.geolocation.getCurrentPosition(
-        (pos) => {
-          const { latitude, longitude } = pos.coords;
-          // The updated getWeather hook handles reverse geocoding and updates the store
-          getWeather(latitude, longitude);
-          setIsLocating(false);
-        },
-        () => {
-          setIsLocating(false);
-          toast.error("Unable to get current location.");
-        },
-      );
-    } else {
-      toast.error("Geolocation is not supported.");
+    if (!navigator.geolocation) {
+      toast.error("Geolocation services are unavailable.");
+      return;
     }
+    setIsLocating(true);
+    toast.info("Acquiring satellite lock...");
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        getWeather(pos.coords.latitude, pos.coords.longitude);
+        setIsLocating(false);
+        setIsMenuOpen(false);
+      },
+      () => {
+        setIsLocating(false);
+        toast.error("Coordinate retrieval failed.");
+      },
+    );
   };
 
   const handleSuggestionClick = (suggestion: Suggestion) => {
     pickSuggestion(suggestion);
     setSuggestions([]);
-    setTargetLocation(suggestion); // Directly update Zustand store
+    setTargetLocation(suggestion);
+    setIsMenuOpen(false);
   };
 
-  const isLoading = loadingWeather || isLocating;
-
-  const headerClass = isCrisisMode
-    ? "bg-background border-b"
-    : "bg-background/95 md:bg-card/70 md:rounded-xl md:border shadow-sm backdrop-blur-md";
-
   return (
-    <header
-      className={`sticky top-0 md:top-4 z-50 p-4 transition-all ${headerClass}`}
-    >
-      <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
-        {/* Block 1: Logo & Mobile Actions */}
-        <div className="flex w-full md:w-auto items-center justify-between">
-          <h1
-            className="text-2xl font-bold tracking-tight cursor-pointer"
-            onClick={() => window.location.reload()}
-          >
-            {isCrisisMode ? (
-              "CLIMAPH"
-            ) : (
-              <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-                ClimaPH
-              </span>
-            )}
-          </h1>
-
-          <div className="flex items-center gap-1 md:hidden">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={toggleCrisisMode}
-              className={`h-9 w-9 ${isCrisisMode ? "text-red-500" : ""}`}
+    <>
+      <header className="sticky top-4 z-40 flex w-full justify-center px-4 md:px-6 mb-8">
+        <div className="relative flex h-16 w-full max-w-[1400px] items-center justify-between rounded-full border border-border/40 bg-background/80 px-4 md:px-6 shadow-lg shadow-primary/5 backdrop-blur-xl supports-[backdrop-filter]:bg-background/60">
+          
+          <div className="relative z-20 flex shrink-0 items-center gap-4">
+            <div 
+              className="flex cursor-pointer items-center transition-transform hover:scale-105"
+              onClick={() => window.location.reload()}
             >
-              <Activity className="h-5 w-5" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={handleCurrentLocation}
-              className="h-9 w-9"
-            >
-              <Locate className="h-5 w-5" />
-            </Button>
-            <ModeToggle />
-          </div>
-        </div>
-
-        {/* Block 2: Search Bar */}
-        <div className="relative w-full md:max-w-md lg:max-w-lg">
-          <SearchBar
-            input={input}
-            onChange={(e) => onChange(e.target.value)}
-            getWeather={() => getWeather(undefined, undefined, input)}
-            loadingWeather={isLoading}
-            hasValidSelection={!!targetLocation}
-          />
-
-          {suggestions.length > 0 && (
-            <div className="absolute top-full left-0 w-full mt-2 z-[100]">
-              <Suggestions
-                suggestions={suggestions}
-                pickSuggestion={handleSuggestionClick}
+              <Image
+                src="/climaph-brand-logo.webp"
+                alt="ClimaPH Logo"
+                width={150}
+                height={40}
+                className="h-9 w-auto object-contain md:h-10"
+                priority
               />
             </div>
-          )}
-        </div>
+          </div>
 
-        {/* Block 3: Desktop Actions */}
-        <div className="hidden md:flex items-center gap-1">
-          <Button
-            variant={isCrisisMode ? "destructive" : "outline"}
-            size="sm"
-            onClick={toggleCrisisMode}
-            className="mr-2"
-          >
-            <Activity className="h-4 w-4 mr-2" />
-            Crisis Mode
-          </Button>
+          <div className="pointer-events-none absolute inset-0 z-10 hidden items-center justify-center lg:flex">
+            <div className="pointer-events-auto relative w-full max-w-2xl px-4">
+              <SearchBar
+                input={input}
+                onChange={(e) => onChange(e.target.value)}
+                getWeather={() => getWeather(undefined, undefined, input)}
+                loadingWeather={loadingWeather || isLocating}
+                hasValidSelection={!!targetLocation}
+              />
 
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={handleCurrentLocation}
-            title="Current Location"
-          >
-            <Locate className="h-5 w-5" />
-          </Button>
-
-          <Dialog>
-            <DialogTrigger asChild>
-              <Button variant="ghost" size="icon" title="Favorites">
-                <Star className="h-5 w-5" />
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-sm w-full z-[100]">
-              <DialogHeader>
-                <DialogTitle>Saved Locations</DialogTitle>
-              </DialogHeader>
-              <div className="flex flex-col gap-2 mt-2 max-h-[300px] overflow-y-auto">
-                {favorites.length === 0 && (
-                  <p className="text-sm text-center py-4 text-muted-foreground">
-                    No favorites yet.
-                  </p>
+              <AnimatePresence>
+                {suggestions.length > 0 && (
+                  <motion.div 
+                    initial={{ opacity: 0, y: 8, scale: 0.98 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: 8, scale: 0.98 }}
+                    transition={{ duration: 0.15 }}
+                    className="absolute left-4 right-4 top-[calc(100%+12px)] shadow-2xl"
+                  >
+                    <div className="overflow-hidden rounded-2xl border border-primary/20 bg-background/95 ring-1 ring-primary/10 backdrop-blur-2xl">
+                      <Suggestions
+                        suggestions={suggestions}
+                        pickSuggestion={handleSuggestionClick}
+                      />
+                    </div>
+                  </motion.div>
                 )}
-                {favorites.map((fav) => (
-                  <DialogTrigger asChild key={fav.display}>
-                    <Button
-                      variant="ghost"
-                      className="justify-start w-full"
-                      onClick={() => setTargetLocation(fav)}
-                    >
-                      <Star className="mr-2 h-4 w-4 text-yellow-500 fill-yellow-500" />
-                      {fav.display}
-                    </Button>
-                  </DialogTrigger>
-                ))}
-              </div>
-            </DialogContent>
-          </Dialog>
+              </AnimatePresence>
+            </div>
+          </div>
 
-          <ModeToggle />
+          <div className="relative z-20 flex shrink-0 items-center justify-end gap-2">
+            
+            <div className="hidden items-center gap-2 lg:flex">
+              <Button
+                variant={isCrisisMode ? "destructive" : "secondary"}
+                size="sm"
+                onClick={toggleCrisisMode}
+                className={`h-10 rounded-full px-5 text-xs font-bold tracking-wide transition-all ${
+                  isCrisisMode ? "animate-pulse shadow-lg shadow-destructive/20" : "hover:bg-primary/10 hover:text-primary"
+                }`}
+              >
+                <Activity className="mr-2 h-4 w-4" />
+                {isCrisisMode ? "SYS_OVERRIDE" : "NORMAL_OP"}
+              </Button>
+
+              <div className="mx-1 h-6 w-[1px] bg-border/60" />
+
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={handleCurrentLocation}
+                className="h-10 w-10 rounded-full text-foreground/70 transition-colors hover:bg-primary/10 hover:text-primary"
+              >
+                <LocateFixed className="h-[18px] w-[18px]" />
+              </Button>
+
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button variant="ghost" size="icon" className="h-10 w-10 rounded-full text-foreground/70 transition-colors hover:bg-secondary/10 hover:text-secondary">
+                    <Star className="h-[18px] w-[18px]" />
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-xs overflow-hidden rounded-3xl border-border/40 bg-background/95 p-0 shadow-2xl backdrop-blur-2xl">
+                  <div className="border-b border-border/20 bg-primary/5 px-5 py-4">
+                    <DialogTitle className="text-xs font-bold uppercase tracking-widest text-primary">Anchored Nodes</DialogTitle>
+                  </div>
+                  <div className="flex max-h-[300px] flex-col overflow-y-auto p-3 scrollbar-hide">
+                    {favorites.length === 0 ? (
+                      <div className="my-6 flex flex-col items-center justify-center rounded-2xl border border-dashed border-border/50 bg-muted/20 py-8">
+                        <MapPin className="mb-2 h-6 w-6 text-muted-foreground/40" />
+                        <p className="text-xs font-medium text-muted-foreground">No coordinates saved.</p>
+                      </div>
+                    ) : (
+                      favorites.map((fav) => (
+                         <DialogTrigger asChild key={fav.display}>
+                          <Button
+                            variant="ghost"
+                            className="mb-1 h-12 w-full justify-start rounded-2xl px-4 text-sm font-semibold transition-colors hover:bg-secondary/10 hover:text-secondary"
+                            onClick={() => setTargetLocation(fav)}
+                          >
+                            <Star className="mr-3 h-4 w-4 fill-secondary text-secondary" />
+                            <span className="truncate">{fav.display}</span>
+                          </Button>
+                        </DialogTrigger>
+                      ))
+                    )}
+                  </div>
+                </DialogContent>
+              </Dialog>
+
+              <div className="mx-1 h-6 w-[1px] bg-border/60" />
+              <ModeToggle />
+            </div>
+
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setIsMenuOpen(true)}
+              className="h-10 w-10 rounded-full text-foreground transition-colors hover:bg-primary/10 hover:text-primary focus-visible:ring-0 lg:hidden"
+            >
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="4" y1="6" x2="20" y2="6"></line>
+                <line x1="8" y1="12" x2="20" y2="12"></line>
+                <line x1="12" y1="18" x2="20" y2="18"></line>
+              </svg>
+            </Button>
+          </div>
         </div>
-      </div>
-    </header>
+      </header>
+
+      <AnimatePresence>
+        {isMenuOpen && (
+          <motion.div
+            initial={{ opacity: 0, y: "100%" }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: "100%" }}
+            transition={{ type: "spring", damping: 25, stiffness: 200 }}
+            className="fixed inset-0 z-[100] flex flex-col bg-background/95 px-6 py-8 backdrop-blur-3xl"
+          >
+            <div className="mb-8 flex items-center justify-between">
+              <Image
+                src="/climaph-brand-logo.webp"
+                alt="ClimaPH Logo"
+                width={140}
+                height={36}
+                className="h-8 w-auto object-contain"
+              />
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setIsMenuOpen(false)}
+                className="h-10 w-10 rounded-full bg-muted/50 transition-colors hover:bg-destructive hover:text-destructive-foreground"
+              >
+                <X className="h-5 w-5" />
+              </Button>
+            </div>
+
+            <div className="mb-6">
+               <SearchBar
+                input={input}
+                onChange={(e) => onChange(e.target.value)}
+                getWeather={() => {
+                  getWeather(undefined, undefined, input);
+                  setIsMenuOpen(false);
+                }}
+                loadingWeather={loadingWeather}
+                hasValidSelection={!!targetLocation}
+              />
+            </div>
+
+            <div className="flex flex-1 flex-col gap-4 overflow-y-auto pb-4 scrollbar-hide">
+              <Button
+                variant="secondary"
+                className="h-16 w-full justify-start rounded-2xl bg-primary/10 text-base font-bold text-primary transition-all hover:bg-primary hover:text-primary-foreground"
+                onClick={handleCurrentLocation}
+              >
+                <LocateFixed className="mr-4 h-5 w-5" />
+                Initialize GPS Lock
+              </Button>
+
+              <div className="mt-2 flex flex-col rounded-2xl border border-secondary/20 bg-secondary/5 p-2">
+                <div className="flex items-center gap-2 px-4 py-3 text-sm font-bold uppercase tracking-wider text-secondary">
+                  <Star className="h-4 w-4 fill-secondary" />
+                  Anchored Nodes
+                </div>
+                {favorites.length === 0 ? (
+                  <div className="my-2 flex flex-col items-center justify-center rounded-xl border border-dashed border-border/50 py-6">
+                    <MapPin className="mb-2 h-5 w-5 text-muted-foreground/40" />
+                    <span className="text-xs font-medium text-muted-foreground">No data available.</span>
+                  </div>
+                ) : (
+                  favorites.map((fav) => (
+                    <Button
+                      key={fav.display}
+                      variant="ghost"
+                      className="h-14 w-full justify-start rounded-xl text-sm font-semibold transition-colors hover:bg-secondary/20"
+                      onClick={() => handleSuggestionClick(fav)}
+                    >
+                      <MapPin className="mr-4 h-4 w-4 text-secondary" />
+                      <span className="truncate">{fav.display}</span>
+                    </Button>
+                  ))
+                )}
+              </div>
+            </div>
+
+            <div className="mt-auto pt-4">
+              <div className="mb-4 flex items-center justify-between rounded-2xl border border-border/40 bg-muted/30 p-4">
+                <span className="text-sm font-bold uppercase tracking-wide text-foreground/70">Interface Theme</span>
+                <ModeToggle />
+              </div>
+
+              <Button
+                variant={isCrisisMode ? "destructive" : "default"}
+                className={`h-16 w-full justify-center rounded-2xl text-base font-bold shadow-lg transition-all ${
+                  isCrisisMode ? "shadow-destructive/30" : "bg-foreground text-background shadow-foreground/20 hover:bg-primary"
+                }`}
+                onClick={() => {
+                  toggleCrisisMode();
+                  setIsMenuOpen(false);
+                }}
+              >
+                <Activity className="mr-3 h-5 w-5" />
+                {isCrisisMode ? "Disable Crisis Protocol" : "Initialize Crisis Protocol"}
+              </Button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </>
   );
 }

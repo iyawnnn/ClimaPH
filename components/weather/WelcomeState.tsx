@@ -1,12 +1,12 @@
-import { MapPin, Navigation } from "lucide-react";
+import { Navigation, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { motion } from "framer-motion";
 
 type WelcomeStateProps = {
   onUseLocation: () => void;
   onSelectCity: (city: string, lat: number, lon: number) => void;
 };
 
-// Expanded list of popular PH locations
 const POPULAR_CITIES = [
   { name: "Manila", lat: 14.5995, lon: 120.9842 },
   { name: "Quezon City", lat: 14.676, lon: 121.0437 },
@@ -19,61 +19,81 @@ const POPULAR_CITIES = [
   { name: "Siargao", lat: 9.7892, lon: 126.1559 },
 ];
 
+const containerVariants = {
+  hidden: { opacity: 0 },
+  show: {
+    opacity: 1,
+    transition: { staggerChildren: 0.05, delayChildren: 0.1 },
+  },
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 15 },
+  show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 300, damping: 24 } },
+};
+
 export default function WelcomeState({ onUseLocation, onSelectCity }: WelcomeStateProps) {
   return (
-    <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-8 text-center animate-in fade-in zoom-in duration-500">
-      
-      {/* Hero Section */}
-      <div className="space-y-4 max-w-lg">
-        <div className="bg-blue-500/10 p-4 rounded-full w-fit mx-auto ring-1 ring-blue-500/20">
-          <MapPin className="h-12 w-12 text-blue-500" />
+    <motion.div 
+      initial={{ opacity: 0, scale: 0.98 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ duration: 0.5, ease: "easeOut" }}
+      className="flex flex-col items-center justify-center min-h-[65vh] w-full"
+    >
+      <div className="w-full max-w-xl flex flex-col items-center gap-10">
+        
+        {/* Header */}
+        <div className="text-center space-y-3">
+          <div className="flex justify-center mb-4">
+            <div className="h-12 w-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary border border-primary/20">
+              <MapPin className="h-6 w-6" />
+            </div>
+          </div>
+          <h2 className="text-3xl font-semibold tracking-tight text-foreground">
+            ClimaPH
+          </h2>
+          <p className="text-muted-foreground text-sm max-w-sm mx-auto leading-relaxed">
+            Select a location to retrieve high-fidelity meteorological data and system forecasts.
+          </p>
         </div>
-        <h2 className="text-3xl font-bold tracking-tight">
-          Welcome to ClimaPH
-        </h2>
-        {/* FIX: Concise 2-line description */}
-        <p className="text-muted-foreground text-lg px-4 leading-relaxed">
-          Your specialized weather companion for the Philippines. <br className="hidden md:block" />
-          Get accurate, localized forecasts for your city or province.
-        </p>
-      </div>
 
-      {/* Action Buttons */}
-      <div className="w-full max-w-md space-y-6">
+        {/* Primary Action */}
         <Button 
           size="lg" 
-          className="w-full gap-2 text-base font-semibold shadow-md hover:shadow-lg transition-all" 
+          className="w-full sm:w-auto px-8 rounded-2xl shadow-sm transition-all duration-300 h-12"
           onClick={onUseLocation}
         >
-          <Navigation className="h-4 w-4" />
-          Use My Current Location
+          <Navigation className="h-4 w-4 mr-2" />
+          Use Current Location
         </Button>
 
-        <div className="relative">
-          <div className="absolute inset-0 flex items-center">
-            <span className="w-full border-t" />
+        {/* Node Grid */}
+        <motion.div 
+          variants={containerVariants}
+          initial="hidden"
+          animate="show"
+          className="w-full pt-6 border-t border-border/50"
+        >
+          <p className="text-[11px] font-mono text-muted-foreground uppercase tracking-wider mb-5 text-center">
+            Or select a frequent node
+          </p>
+          <div className="flex flex-wrap justify-center gap-2.5">
+            {POPULAR_CITIES.map((city) => (
+              <motion.div key={city.name} variants={itemVariants}>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="rounded-xl text-xs font-medium border-border/60 hover:border-primary/50 hover:bg-primary/5 transition-colors duration-200"
+                  onClick={() => onSelectCity(city.name, city.lat, city.lon)}
+                >
+                  {city.name}
+                </Button>
+              </motion.div>
+            ))}
           </div>
-          <div className="relative flex justify-center text-xs uppercase">
-            <span className="bg-background px-2 text-muted-foreground">
-              Or choose a popular city
-            </span>
-          </div>
-        </div>
+        </motion.div>
 
-        {/* Popular Cities Grid */}
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-          {POPULAR_CITIES.map((city) => (
-            <Button
-              key={city.name}
-              variant="outline"
-              className="h-auto py-3 px-2 text-sm hover:border-blue-500 hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-950/30 transition-colors"
-              onClick={() => onSelectCity(city.name, city.lat, city.lon)}
-            >
-              {city.name}
-            </Button>
-          ))}
-        </div>
       </div>
-    </div>
+    </motion.div>
   );
 }
