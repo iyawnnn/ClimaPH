@@ -21,7 +21,8 @@ import { Activity, Locate, Star } from "lucide-react";
 import type { Suggestion } from "@/types/types";
 
 export default function SiteHeader() {
-  const { isCrisisMode, toggleCrisisMode, setTargetLocation, targetLocation } = useAppStore();
+  const { isCrisisMode, toggleCrisisMode, setTargetLocation, targetLocation } =
+    useAppStore();
   const [isLocating, setIsLocating] = useState(false);
   const [favorites, setFavorites] = useState<Suggestion[]>([]);
 
@@ -30,13 +31,8 @@ export default function SiteHeader() {
     setFavorites(getFavorites());
   }, []);
 
-  const {
-    input,
-    suggestions,
-    onChange,
-    pickSuggestion,
-    setSuggestions,
-  } = useSearch();
+  const { input, suggestions, onChange, pickSuggestion, setSuggestions } =
+    useSearch();
 
   const { getWeather, loadingWeather } = useWeather();
 
@@ -49,13 +45,13 @@ export default function SiteHeader() {
         (pos) => {
           const { latitude, longitude } = pos.coords;
           // The updated getWeather hook handles reverse geocoding and updates the store
-          getWeather(latitude, longitude); 
+          getWeather(latitude, longitude);
           setIsLocating(false);
         },
         () => {
           setIsLocating(false);
           toast.error("Unable to get current location.");
-        }
+        },
       );
     } else {
       toast.error("Geolocation is not supported.");
@@ -75,9 +71,10 @@ export default function SiteHeader() {
     : "bg-background/95 md:bg-card/70 md:rounded-xl md:border shadow-sm backdrop-blur-md";
 
   return (
-    <header className={`sticky top-0 md:top-4 z-50 p-4 transition-all ${headerClass}`}>
+    <header
+      className={`sticky top-0 md:top-4 z-50 p-4 transition-all ${headerClass}`}
+    >
       <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
-        
         {/* Block 1: Logo & Mobile Actions */}
         <div className="flex w-full md:w-auto items-center justify-between">
           <h1
@@ -87,7 +84,7 @@ export default function SiteHeader() {
             {isCrisisMode ? (
               "CLIMAPH[SYS]"
             ) : (
-              <span className="bg-gradient-to-r from-blue-600 to-cyan-500 bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
                 ClimaPH
               </span>
             )}
@@ -102,7 +99,12 @@ export default function SiteHeader() {
             >
               <Activity className="h-5 w-5" />
             </Button>
-            <Button variant="ghost" size="icon" onClick={handleCurrentLocation} className="h-9 w-9">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handleCurrentLocation}
+              className="h-9 w-9"
+            >
               <Locate className="h-5 w-5" />
             </Button>
             <ModeToggle />
@@ -121,7 +123,10 @@ export default function SiteHeader() {
 
           {suggestions.length > 0 && (
             <div className="absolute top-full left-0 w-full mt-2 z-[100]">
-              <Suggestions suggestions={suggestions} pickSuggestion={handleSuggestionClick} />
+              <Suggestions
+                suggestions={suggestions}
+                pickSuggestion={handleSuggestionClick}
+              />
             </div>
           )}
         </div>
@@ -138,7 +143,12 @@ export default function SiteHeader() {
             Crisis Mode
           </Button>
 
-          <Button variant="ghost" size="icon" onClick={handleCurrentLocation} title="Current Location">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={handleCurrentLocation}
+            title="Current Location"
+          >
             <Locate className="h-5 w-5" />
           </Button>
 
@@ -154,7 +164,9 @@ export default function SiteHeader() {
               </DialogHeader>
               <div className="flex flex-col gap-2 mt-2 max-h-[300px] overflow-y-auto">
                 {favorites.length === 0 && (
-                  <p className="text-sm text-center py-4 text-muted-foreground">No favorites yet.</p>
+                  <p className="text-sm text-center py-4 text-muted-foreground">
+                    No favorites yet.
+                  </p>
                 )}
                 {favorites.map((fav) => (
                   <DialogTrigger asChild key={fav.display}>
