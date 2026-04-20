@@ -1,5 +1,3 @@
-// constants.ts
-
 export const CONFIG = {
   OPENWEATHER_API_KEY: process.env.NEXT_PUBLIC_OWM_API_KEY,
   OPENCAGE_API_KEY: process.env.NEXT_PUBLIC_OPENCAGE_API_KEY,
