@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import useSWR from "swr";
 import { toast } from "sonner";
-import { Suggestion } from "@/types/types";
+import { useAppStore } from "@/store/useAppStore";
 import { OPENCAGE_KEY, OWM_KEY } from "@/lib/constants";
 import { makeDisplayNameFromComponents, isValidSuggestion } from "@/lib/utils";
 
@@ -14,50 +14,38 @@ const fetcher = async (url: string) => {
   return res.json();
 };
 
-export const useWeather = (selected: Suggestion | null, input: string) => {
-  const [target, setTarget] = useState<{
-    lat: number;
-    lng: number;
-    displayName: string;
-  } | null>(null);
+export const useWeather = () => {
+  // 1. Subscribe to the global Zustand store
+  const target = useAppStore((state) => state.targetLocation);
+  const setTarget = useAppStore((state) => state.setTargetLocation);
+  
   const [error, setError] = useState("");
   const [isGeocoding, setIsGeocoding] = useState(false);
 
-  const weatherUrl =
-    target && OWM_KEY
-      ? `https://api.openweathermap.org/data/2.5/weather?lat=${target.lat}&lon=${target.lng}&appid=${OWM_KEY}&units=metric`
-      : null;
+  // 2. SWR watches these URLs. If 'target' is null, fetching is paused.
+  const weatherUrl = target && OWM_KEY
+    ? `https://api.openweathermap.org/data/2.5/weather?lat=${target.lat}&lon=${target.lng}&appid=${OWM_KEY}&units=metric`
+    : null;
 
-  const forecastUrl =
-    target && OWM_KEY
-      ? `https://api.openweathermap.org/data/2.5/forecast?lat=${target.lat}&lon=${target.lng}&appid=${OWM_KEY}&units=metric`
-      : null;
+  const forecastUrl = target && OWM_KEY
+    ? `https://api.openweathermap.org/data/2.5/forecast?lat=${target.lat}&lon=${target.lng}&appid=${OWM_KEY}&units=metric`
+    : null;
 
-  const {
-    data: rawWeather,
-    error: weatherError,
-    isLoading: loadingWeatherSWR,
-  } = useSWR(weatherUrl, fetcher, {
-    dedupingInterval: 300000,
+  const { data: rawWeather, error: weatherError, isLoading: loadingWeatherSWR } = useSWR(weatherUrl, fetcher, {
+    dedupingInterval: 300000, 
     revalidateOnFocus: false,
     onSuccess: () => {
-      if (target) toast.success(`Weather updated for ${target.displayName}`);
-    },
+      if (target) toast.success(`Weather updated for ${target.display}`);
+    }
   });
 
-  const {
-    data: rawForecast,
-    error: forecastError,
-    isLoading: loadingForecastSWR,
-  } = useSWR(forecastUrl, fetcher, {
+  const { data: rawForecast, error: forecastError, isLoading: loadingForecastSWR } = useSWR(forecastUrl, fetcher, {
     dedupingInterval: 300000,
     revalidateOnFocus: false,
   });
 
-  const weather =
-    rawWeather && target
-      ? { ...rawWeather, displayName: target.displayName }
-      : null;
+  // 3. Process parallel responses
+  const weather = rawWeather && target ? { ...rawWeather, displayName: target.display } : null;
   let fiveDayForecast = null;
   let twelveHourForecast = null;
 
@@ -73,57 +61,32 @@ export const useWeather = (selected: Suggestion | null, input: string) => {
     twelveHourForecast = [currentPoint, ...rawForecast.list].slice(0, 9);
   }
 
-  const getWeather = async (
-    latInput?: number,
-    lonInput?: number,
-    displayNameInput?: string,
-  ) => {
+  // 4. Temporary helper function to keep page.tsx from breaking during Phase 3
+  const getWeather = async (latInput?: number, lonInput?: number, displayNameInput?: string) => {
     setError("");
-    let lat = latInput;
-    let lng = lonInput;
-    let displayName = displayNameInput || input;
-
-    try {
-      if (!lat || !lng) {
-        if (selected) {
-          lat = selected.lat;
-          lng = selected.lng;
-          displayName = selected.display;
-        } else {
-          if (!OPENCAGE_KEY) {
-            setError("Missing OpenCage API key.");
-          }
-          return;
-        }
-      } else {
-        if (!displayNameInput && OPENCAGE_KEY) {
-          setIsGeocoding(true);
-          const url = `https://api.opencagedata.com/geocode/v1/json?q=${lat},${lng}&key=${OPENCAGE_KEY}&countrycode=PH&limit=1`;
+    if (latInput && lonInput) {
+      let display = displayNameInput || "Unknown Location";
+      
+      if (!displayNameInput && OPENCAGE_KEY) {
+        setIsGeocoding(true);
+        try {
+          const url = `https://api.opencagedata.com/geocode/v1/json?q=${latInput},${lonInput}&key=${OPENCAGE_KEY}&countrycode=PH&limit=1`;
           const res = await fetch(url);
           const data = await res.json();
           const r = data?.results?.[0];
-
           if (isValidSuggestion(r)) {
-            displayName =
-              makeDisplayNameFromComponents(r?.components, r?.formatted) ||
-              "Unknown Location";
+            display = makeDisplayNameFromComponents(r?.components, r?.formatted) || "Unknown Location";
           }
-          if (!displayName) displayName = "Unknown Location";
-          setIsGeocoding(false);
+        } catch (e) {
+          // Proceed with "Unknown Location" if rate-limited
         }
+        setIsGeocoding(false);
       }
-
-      if (lat && lng) {
-        setTarget({ lat, lng, displayName: displayName || "Unknown Location" });
-      }
-    } catch (e) {
-      setError("An unexpected error occurred.");
-      setIsGeocoding(false);
+      
+      // Updating the store triggers SWR automatically
+      setTarget({ lat: latInput, lng: lonInput, display });
     }
   };
-
-  const get5DayForecast = async () => {};
-  const get12HourForecast = async () => {};
 
   useEffect(() => {
     if (weatherError || forecastError) {
@@ -137,9 +100,7 @@ export const useWeather = (selected: Suggestion | null, input: string) => {
     error,
     fiveDayForecast,
     twelveHourForecast,
-    getWeather,
-    get5DayForecast,
-    get12HourForecast,
+    getWeather, 
     setError,
   };
 };

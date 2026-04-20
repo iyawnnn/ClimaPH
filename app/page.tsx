@@ -2,66 +2,38 @@
 
 import { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
-import SearchBar from "@/components/Search/SearchBar";
-import Suggestions from "@/components/Search/Suggestions";
-import CurrentWeather from "@/components/Weather/CurrentWeather";
-import ProForecast from "@/components/Weather/ProForecast";
-import LifestyleGrid from "@/components/Weather/LifestyleGrid";
-import WelcomeState from "@/components/Weather/WelcomeState";
+import SiteHeader from "@/components/layout/SiteHeader";
+import WelcomeState from "@/components/weather/WelcomeState";
+import CurrentWeather from "@/components/weather/CurrentWeather";
+import LifestyleGrid from "@/components/weather/LifestyleGrid";
+import CommuterIndex from "@/components/weather/CommuterIndex";
+import LifestyleChecker from "@/components/weather/LifestyleChecker";
+import ProForecast from "@/components/weather/ProForecast";
 import Footer from "@/components/Footer";
-import { Button } from "@/components/ui/button";
-import { useSearch } from "@/hooks/useSearch";
-import { useWeather } from "@/hooks/useWeather";
-import { toast } from "sonner";
-import { ModeToggle } from "@/components/ModeToggle";
 import MapLegend from "@/components/MapLegend";
-import { Suggestion } from "@/types/types";
-import CommuterIndex from "@/components/Weather/CommuterIndex";
-import LifestyleChecker from "@/components/Weather/LifestyleChecker";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { useWeather } from "@/hooks/useWeather";
+import { useAppStore } from "@/store/useAppStore";
 import { getFavorites, addFavorite, removeFavorite } from "@/lib/favorites";
-import {
-  Locate,
-  Star,
-  CloudRain,
-  Wind,
-  Thermometer,
-  Cloud,
-  Activity,
-} from "lucide-react";
+import { toast } from "sonner";
+import { CloudRain, Wind, Thermometer, Cloud } from "lucide-react";
+import type { Suggestion } from "@/types/types";
 
-const WeatherMap = dynamic(() => import("@/components/Weather/WeatherMap"), {
+const WeatherMap = dynamic(() => import("@/components/weather/WeatherMap"), {
   ssr: false,
-  loading: () => <Skeleton className="h-[400px] w-full rounded-xl" />,
+  loading: () => <div className="animate-pulse bg-muted rounded-xl h-[400px] w-full" />,
 });
 
-const Skeleton = ({ className }: { className?: string }) => (
-  <div className={`animate-pulse bg-muted rounded-md ${className}`} />
-);
-
-type MapLayerType =
-  | "temp_new"
-  | "precipitation_new"
-  | "clouds_new"
-  | "wind_new";
+type MapLayerType = "temp_new" | "precipitation_new" | "clouds_new" | "wind_new";
 
 export default function Page() {
-  const [unit, setUnit] = useState<"C" | "F">("C");
-  const [mapLayer, setMapLayer] = useState<MapLayerType>("temp_new");
-  const [favorites, setFavorites] = useState<Suggestion[]>(() =>
-    getFavorites(),
-  );
+  const { isCrisisMode, unit, mapLayer, setMapLayer, setTargetLocation } = useAppStore();
+  const { weather, loadingWeather, fiveDayForecast, twelveHourForecast, getWeather } = useWeather();
+  const [favorites, setFavorites] = useState<Suggestion[]>([]);
 
-  // States for loading, GPS tracking, and Crisis Mode
-  const [isLocating, setIsLocating] = useState(false);
-  const [isGPS, setIsGPS] = useState(false);
-  const [isCrisisMode, setIsCrisisMode] = useState(false);
+  useEffect(() => {
+    setFavorites(getFavorites());
+  }, []);
 
   const toggleFavorite = (loc: Suggestion) => {
     const isFav = favorites.some((f) => f.display === loc.display);
@@ -76,101 +48,33 @@ export default function Page() {
     }
   };
 
-  const {
-    input,
-    suggestions,
-    selected,
-    onChange,
-    pickSuggestion,
-    setSuggestions,
-  } = useSearch();
-
-  const {
-    weather,
-    loadingWeather,
-    fiveDayForecast,
-    twelveHourForecast,
-    getWeather,
-    setError: setWeatherError,
-  } = useWeather(selected, input);
-
-  // SWR automatically handles forecast fetching now, so we just manage UI state here
-  useEffect(() => {
-    if (weather) {
-      toast.dismiss();
-      setIsLocating(false);
-    }
-  }, [weather]);
-
-  const mapCenter: [number, number] = weather
-    ? [weather.coord.lat, weather.coord.lon]
-    : [12.8797, 121.774];
-
-  const mapZoom = weather ? 12 : 6;
-
   const handleCurrentLocation = () => {
     if (navigator.geolocation) {
-      setIsLocating(true);
       toast.info("Locating you...");
-
       navigator.geolocation.getCurrentPosition(
-        (pos) => {
-          const { latitude, longitude } = pos.coords;
-          setIsGPS(true);
-          getWeather(latitude, longitude);
-          toast.success("Location found!");
-        },
-        () => {
-          setIsLocating(false);
-          toast.error("Unable to get current location.");
-        },
+        (pos) => getWeather(pos.coords.latitude, pos.coords.longitude),
+        () => toast.error("Unable to get current location.")
       );
-    } else {
-      setWeatherError("Geolocation is not supported.");
-      toast.error("Geolocation is not supported.");
     }
-  };
-
-  const handlePopularCity = (city: string, lat: number, lon: number) => {
-    onChange("");
-    setIsLocating(true);
-    setIsGPS(false);
-    getWeather(lat, lon, city).finally(() => setIsLocating(false));
-  };
-
-  const handleSuggestionClick = (suggestion: Suggestion) => {
-    pickSuggestion(suggestion);
-    setSuggestions([]);
-    setIsLocating(true);
-    setIsGPS(false);
-    getWeather(suggestion.lat, suggestion.lng, suggestion.display).finally(() =>
-      setIsLocating(false),
-    );
   };
 
   const getLayerIcon = (layer: MapLayerType) => {
     switch (layer) {
-      case "precipitation_new":
-        return <CloudRain className="h-4 w-4" />;
-      case "wind_new":
-        return <Wind className="h-4 w-4" />;
-      case "clouds_new":
-        return <Cloud className="h-4 w-4" />;
-      default:
-        return <Thermometer className="h-4 w-4" />;
+      case "precipitation_new": return <CloudRain className="h-4 w-4" />;
+      case "wind_new": return <Wind className="h-4 w-4" />;
+      case "clouds_new": return <Cloud className="h-4 w-4" />;
+      default: return <Thermometer className="h-4 w-4" />;
     }
   };
 
-  const isLoading = loadingWeather || isLocating;
-
-  // Crisis Mode Styling Variables
+  const isLoading = loadingWeather;
   const animationClass = isCrisisMode ? "" : "animate-in fade-in slide-in-from-bottom-4 duration-500";
-  const headerClass = isCrisisMode ? "bg-background border-b" : "bg-background/95 md:bg-card/70 md:rounded-xl md:border shadow-sm backdrop-blur-md";
+  const mapCenter: [number, number] = weather ? [weather.coord.lat, weather.coord.lon] : [12.8797, 121.774];
+  const mapZoom = weather ? 12 : 6;
 
   return (
     <div className={`min-h-screen bg-background flex flex-col ${isCrisisMode ? 'font-mono transition-none' : 'transition-colors'}`}>
       
-      {/* CRISIS MODE BANNER */}
       {isCrisisMode && (
         <div className="w-full bg-red-600 dark:bg-red-900 text-white text-xs py-1 text-center font-bold uppercase tracking-widest">
           Crisis Mode Active — Map Disabled — Bandwidth Optimized
@@ -179,122 +83,13 @@ export default function Page() {
 
       <div className="flex-grow p-4 md:p-6 lg:p-8">
         <div className="max-w-7xl mx-auto space-y-6">
-          
-          <header className={`sticky top-0 md:top-4 z-50 p-4 transition-all ${headerClass}`}>
-            <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
-              <div className="flex w-full md:w-auto items-center justify-between">
-                <h1
-                  className="text-2xl font-bold tracking-tight cursor-pointer"
-                  onClick={() => window.location.reload()}
-                >
-                  {isCrisisMode ? "CLIMAPH[SYS]" : <span className="bg-gradient-to-r from-blue-600 to-cyan-500 bg-clip-text text-transparent">ClimaPH</span>}
-                </h1>
-
-                <div className="flex items-center gap-1 md:hidden">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => setIsCrisisMode(!isCrisisMode)}
-                    className={`h-9 w-9 ${isCrisisMode ? "text-red-500" : ""}`}
-                  >
-                    <Activity className="h-5 w-5" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={handleCurrentLocation}
-                    className="h-9 w-9"
-                  >
-                    <Locate className="h-5 w-5" />
-                  </Button>
-                  <ModeToggle />
-                </div>
-              </div>
-
-              <div className="relative w-full md:max-w-md lg:max-w-lg">
-                <SearchBar
-                  input={input}
-                  onChange={(e) => onChange(e.target.value)}
-                  getWeather={getWeather}
-                  loadingWeather={loadingWeather}
-                  hasValidSelection={!!selected}
-                />
-
-                {suggestions.length > 0 && (
-                  <div className="absolute top-full left-0 w-full mt-2 z-[100]">
-                    <Suggestions
-                      suggestions={suggestions}
-                      pickSuggestion={handleSuggestionClick}
-                    />
-                  </div>
-                )}
-              </div>
-
-              <div className="hidden md:flex items-center gap-1">
-                <Button 
-                  variant={isCrisisMode ? "destructive" : "outline"} 
-                  size="sm" 
-                  onClick={() => setIsCrisisMode(!isCrisisMode)} 
-                  className="mr-2"
-                >
-                  <Activity className="h-4 w-4 mr-2" />
-                  Crisis Mode
-                </Button>
-
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={handleCurrentLocation}
-                  title="Current Location"
-                >
-                  <Locate className="h-5 w-5" />
-                </Button>
-
-                <Dialog>
-                  <DialogTrigger asChild>
-                    <Button variant="ghost" size="icon" title="Favorites">
-                      <Star className="h-5 w-5" />
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent className="max-w-sm w-full z-[100]">
-                    <DialogHeader>
-                      <DialogTitle>Saved Locations</DialogTitle>
-                    </DialogHeader>
-                    <div className="flex flex-col gap-2 mt-2 max-h-[300px] overflow-y-auto">
-                      {favorites.length === 0 && (
-                        <p className="text-sm text-center py-4 text-muted-foreground">
-                          No favorites yet.
-                        </p>
-                      )}
-                      {favorites.map((fav) => (
-                        <DialogTrigger asChild key={fav.display}>
-                          <Button
-                            variant="ghost"
-                            className="justify-start w-full"
-                            onClick={() => {
-                              setIsGPS(false);
-                              getWeather(fav.lat, fav.lng, fav.display);
-                            }}
-                          >
-                            <Star className="mr-2 h-4 w-4 text-yellow-500 fill-yellow-500" />
-                            {fav.display}
-                          </Button>
-                        </DialogTrigger>
-                      ))}
-                    </div>
-                  </DialogContent>
-                </Dialog>
-
-                <ModeToggle />
-              </div>
-            </div>
-          </header>
+          <SiteHeader />
 
           <main className="space-y-6">
             {!weather && !isLoading ? (
               <WelcomeState
                 onUseLocation={handleCurrentLocation}
-                onSelectCity={handlePopularCity}
+                onSelectCity={(city, lat, lng) => setTargetLocation({ display: city, lat, lng })}
               />
             ) : (
               <>
@@ -309,14 +104,9 @@ export default function Page() {
                     />
                   </div>
 
-                  {/* Hide Map during Crisis Mode */}
                   {!isCrisisMode && (
                     <div className="lg:col-span-2 h-[400px] rounded-xl overflow-hidden border shadow-sm relative group z-0">
-                      <WeatherMap
-                        center={mapCenter}
-                        zoom={mapZoom}
-                        layer={mapLayer}
-                      />
+                      <WeatherMap center={mapCenter} zoom={mapZoom} layer={mapLayer as MapLayerType} />
 
                       <div className="absolute bottom-4 left-4 z-[400] flex flex-col gap-1 bg-background/80 p-1 rounded-lg border shadow backdrop-blur-md">
                         {[
@@ -330,7 +120,7 @@ export default function Page() {
                             size="sm"
                             variant={mapLayer === layer.id ? "default" : "ghost"}
                             className="justify-start h-8 px-2 w-28 text-xs"
-                            onClick={() => setMapLayer(layer.id as MapLayerType)}
+                            onClick={() => setMapLayer(layer.id)}
                           >
                             {getLayerIcon(layer.id as MapLayerType)}
                             <span className="ml-2">{layer.label}</span>
@@ -339,7 +129,7 @@ export default function Page() {
                       </div>
 
                       <div className="absolute bottom-4 right-4 z-[400] bg-background/80 p-2 rounded-md shadow backdrop-blur-md">
-                        <MapLegend layer={mapLayer} />
+                        <MapLegend layer={mapLayer as MapLayerType} />
                       </div>
                     </div>
                   )}
@@ -349,9 +139,7 @@ export default function Page() {
                   <div className={`space-y-6 mt-6 ${animationClass}`}>
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                       <div className="lg:col-span-2">
-                        {weather && (
-                          <LifestyleGrid weather={weather} unit={unit} />
-                        )}
+                        {weather && <LifestyleGrid weather={weather} unit={unit} />}
                       </div>
                       <div className="lg:col-span-1 flex flex-col gap-6">
                         {fiveDayForecast && (
@@ -365,8 +153,8 @@ export default function Page() {
 
                     <div>
                       <ProForecast
-                        fiveDay={fiveDayForecast}
-                        twelveHour={twelveHourForecast}
+                        fiveDay={fiveDayForecast ?? []}
+                        twelveHour={twelveHourForecast ?? []}
                         unit={unit}
                         loading={isLoading}
                       />
