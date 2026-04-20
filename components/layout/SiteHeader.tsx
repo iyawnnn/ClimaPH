@@ -18,7 +18,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { getFavorites } from "@/lib/favorites";
-import { Activity, LocateFixed, Star, X, MapPin, Search } from "lucide-react";
+import { Activity, LocateFixed, Star, X, MapPin } from "lucide-react";
 import type { Suggestion } from "@/types/types";
 
 export default function SiteHeader() {
@@ -72,10 +72,10 @@ export default function SiteHeader() {
 
   return (
     <>
-      <header className="sticky top-4 z-40 flex w-full justify-center px-4 md:px-6 mb-8">
-        <div className="relative flex h-16 w-full max-w-[1400px] items-center justify-between rounded-full border border-border/40 bg-background/80 px-4 md:px-6 shadow-lg shadow-primary/5 backdrop-blur-xl supports-[backdrop-filter]:bg-background/60">
+      <header className="sticky top-0 z-40 w-full border-b border-border/40 bg-background/60 backdrop-blur-xl supports-[backdrop-filter]:bg-background/60 shrink-0">
+        <div className="flex h-16 w-full items-center justify-between px-4 md:px-6">
           
-          <div className="relative z-20 flex shrink-0 items-center gap-4">
+          <div className="flex flex-1 items-center justify-start gap-4">
             <div 
               className="flex cursor-pointer items-center transition-transform hover:scale-105"
               onClick={() => window.location.reload()}
@@ -91,8 +91,8 @@ export default function SiteHeader() {
             </div>
           </div>
 
-          <div className="pointer-events-none absolute inset-0 z-10 hidden items-center justify-center lg:flex">
-            <div className="pointer-events-auto relative w-full max-w-2xl px-4">
+          <div className="hidden flex-[2] justify-center lg:flex">
+            <div className="relative w-full max-w-2xl">
               <SearchBar
                 input={input}
                 onChange={(e) => onChange(e.target.value)}
@@ -108,7 +108,7 @@ export default function SiteHeader() {
                     animate={{ opacity: 1, y: 0, scale: 1 }}
                     exit={{ opacity: 0, y: 8, scale: 0.98 }}
                     transition={{ duration: 0.15 }}
-                    className="absolute left-4 right-4 top-[calc(100%+12px)] shadow-2xl"
+                    className="absolute left-0 right-0 top-[calc(100%+12px)] shadow-2xl"
                   >
                     <div className="overflow-hidden rounded-2xl border border-primary/20 bg-background/95 ring-1 ring-primary/10 backdrop-blur-2xl">
                       <Suggestions
@@ -122,8 +122,7 @@ export default function SiteHeader() {
             </div>
           </div>
 
-          <div className="relative z-20 flex shrink-0 items-center justify-end gap-2">
-            
+          <div className="flex flex-1 items-center justify-end gap-2">
             <div className="hidden items-center gap-2 lg:flex">
               <Button
                 variant={isCrisisMode ? "destructive" : "secondary"}
