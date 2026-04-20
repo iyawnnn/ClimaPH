@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect } from "react";
-import dynamic from "next/dynamic";
+import { useEffect, useState } from "react";
+import Image from "next/image";
 import { useAppStore } from "@/store/useAppStore";
 import { useSearch } from "@/hooks/useSearch";
 import { useWeather } from "@/hooks/useWeather";
@@ -12,24 +12,16 @@ import LifestyleGrid from "@/components/weather/LifestyleGrid";
 import SearchBar from "@/components/search/SearchBar";
 import Suggestions from "@/components/search/Suggestions";
 import { motion, AnimatePresence } from "framer-motion";
+import { LocateFixed } from "lucide-react";
+import { toast } from "sonner";
 import type { Suggestion } from "@/types/types";
-
-const WeatherMap = dynamic(
-  () => import("@/components/weather/WeatherMap"),
-  { 
-    ssr: false,
-    loading: () => (
-      <div className="w-full h-full flex items-center justify-center bg-card border border-border/40 rounded-3xl animate-pulse">
-        <span className="text-sm text-muted-foreground">Loading Telemetry...</span>
-      </div>
-    )
-  }
-);
 
 export default function DashboardPage() {
   const { targetLocation, setTargetLocation } = useAppStore();
-  const { input, suggestions, onChange, pickSuggestion, setSuggestions } = useSearch();
+  const { input, suggestions, onChange, pickSuggestion, setSuggestions } =
+    useSearch();
   const { weather, loadingWeather, getWeather } = useWeather();
+  const [isLocating, setIsLocating] = useState(false);
 
   useEffect(() => {
     if (targetLocation && !weather && !loadingWeather) {
@@ -43,84 +35,154 @@ export default function DashboardPage() {
     setTargetLocation(suggestion);
   };
 
+  const handleCurrentLocation = () => {
+    if (!navigator.geolocation) {
+      toast.error("Geolocation services are unavailable.");
+      return;
+    }
+    setIsLocating(true);
+    toast.info("Acquiring GPS lock...");
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        getWeather(pos.coords.latitude, pos.coords.longitude);
+        setIsLocating(false);
+      },
+      () => {
+        setIsLocating(false);
+        toast.error("Failed to retrieve coordinates.");
+      },
+    );
+  };
+
+  const getWeatherGreeting = () => {
+    if (loadingWeather || !weather)
+      return "Magandang araw! Kinukuha ang impormasyon...";
+    const desc = (
+      weather.current?.condition?.text ||
+      weather.current?.weather?.[0]?.description ||
+      ""
+    ).toLowerCase();
+    if (desc.includes("rain") || desc.includes("drizzle"))
+      return "Maulan ngayon! Wag kalimutang magdala ng payong.";
+    if (desc.includes("sun") || desc.includes("clear"))
+      return "Mainit ang sikat ng araw! Uminom ng maraming tubig.";
+    if (desc.includes("cloud"))
+      return "Maulap ngayon. Magandang araw para mamasyal!";
+    if (desc.includes("thunder") || desc.includes("storm"))
+      return "May badya ng kulog at kidlat. Ingat po palagi!";
+    return "Magandang araw! Ingat sa byahe mo ngayon.";
+  };
+
   return (
-    <div className="flex flex-col w-full max-w-[1600px] mx-auto gap-8 pb-12">
-      
-      <header className="w-full flex flex-col md:flex-row md:items-end justify-between gap-6 shrink-0">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-foreground">
-            Kumusta! Kape muna bago mag-compile.
-          </h1>
-          <p className="text-sm text-muted-foreground mt-1.5">
-            {targetLocation 
-              ? `Displaying telemetry for ${targetLocation.display}` 
-              : "Awaiting location input to initialize dashboard."}
-          </p>
-        </div>
+    <div className="flex flex-col xl:flex-row w-full min-h-full">
+      {/* Left Area (White Background) */}
+      <div className="flex-1 flex flex-col min-w-0 bg-background p-6 lg:p-8 xl:p-10">
+        {/* Header constrained to left area */}
+        <header className="w-full flex flex-col lg:flex-row lg:items-center justify-between gap-6 shrink-0 mb-10">
+          <div className="flex items-center gap-4">
+            <div className="relative w-12 h-12 rounded-full overflow-hidden shrink-0 shadow-sm">
+              <Image
+                src="/placeholder-avatar.webp"
+                alt="Profile"
+                fill
+                className="object-cover"
+                priority
+              />
+            </div>
+            <div>
+              <h1 className="text-xl font-bold tracking-tight text-foreground font-sans">
+                {getWeatherGreeting()}
+              </h1>
+              <p className="text-xs text-muted-foreground mt-0.5 font-sans uppercase tracking-wider">
+                Telemetry for{" "}
+                <span className="text-foreground font-semibold">
+                  {targetLocation?.display || "Unknown"}
+                </span>
+              </p>
+            </div>
+          </div>
 
-        <div className="relative w-full md:max-w-md z-50">
-          <SearchBar
-            input={input}
-            onChange={(e) => onChange(e.target.value)}
-            getWeather={() => getWeather(undefined, undefined, input)}
-            loadingWeather={loadingWeather}
-            hasValidSelection={!!targetLocation}
-          />
+<div className="flex items-center gap-3 w-full lg:max-w-md z-50 h-12">
+            
+            <div className="relative flex-1 h-full">
+              {/* Elevated visibility: bg-card, border-2, explicit shadow */}
+              <div className="h-full bg-card border-2 border-border/60 shadow-sm rounded-xl overflow-hidden transition-all focus-within:ring-2 focus-within:ring-[#0038A8]/20 focus-within:border-[#0038A8]/50">
+                <SearchBar
+                  input={input}
+                  onChange={(e) => onChange(e.target.value)}
+                  getWeather={() => getWeather(undefined, undefined, input)}
+                  loadingWeather={loadingWeather}
+                  hasValidSelection={!!targetLocation}
+                />
+              </div>
 
-          <AnimatePresence>
-            {suggestions.length > 0 && (
-              <motion.div 
-                initial={{ opacity: 0, y: 8, scale: 0.98 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, y: 8, scale: 0.98 }}
-                transition={{ duration: 0.15 }}
-                className="absolute left-0 right-0 top-[calc(100%+12px)] shadow-xl"
-              >
-                <div className="overflow-hidden rounded-2xl border border-border/40 bg-card">
-                  <Suggestions
-                    suggestions={suggestions}
-                    pickSuggestion={handleSuggestionClick}
-                  />
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
-      </header>
+              <AnimatePresence>
+                {suggestions.length > 0 && (
+                  <motion.div 
+                    initial={{ opacity: 0, y: 4, scale: 0.99 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: 4, scale: 0.99 }}
+                    transition={{ duration: 0.15 }}
+                    className="absolute left-0 right-0 top-[calc(100%+8px)] shadow-xl z-50"
+                  >
+                    <div className="overflow-hidden rounded-xl border border-border/30 bg-background/95 backdrop-blur-md">
+                      <Suggestions suggestions={suggestions} pickSuggestion={handleSuggestionClick} />
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
 
-      <div className="flex flex-col xl:flex-row gap-8">
-        
-        <div className="flex-1 flex flex-col gap-8">
-          <section className="w-full rounded-3xl bg-card border border-border/40 shadow-sm p-8 min-h-[320px] flex flex-col relative overflow-hidden">
+            <button
+              onClick={handleCurrentLocation}
+              disabled={isLocating}
+              className="h-full aspect-square flex items-center justify-center rounded-xl bg-[#0038A8] text-white hover:bg-[#002776] transition-all duration-200 shadow-md shrink-0"
+            >
+              <LocateFixed className={`w-4 h-4 stroke-[2] ${isLocating ? "animate-spin text-[#FCD116]" : ""}`} />
+              <span className="sr-only">Use Current Location</span>
+            </button>
+          </div>
+        </header>
+
+        {/* Masonry-style Grid Layout for Left Column */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8 flex-1">
+          {/* Main Hero Card spanning 2 columns */}
+          <section className="col-span-1 lg:col-span-2 rounded-3xl bg-card border border-border/20 shadow-sm p-8 min-h-[380px] flex flex-col relative overflow-hidden">
             <CurrentWeather />
           </section>
-          
-          <section className="w-full">
-            <h2 className="text-sm font-medium text-foreground mb-4">Today's Sequence</h2>
-            <div className="w-full rounded-3xl bg-card border border-border/40 shadow-sm p-6">
+
+          {/* Forecast sequence in the 3rd column */}
+          <section className="col-span-1 flex flex-col gap-4">
+            <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-widest font-sans">
+              Today's Sequence
+            </h2>
+            <div className="w-full flex-1 rounded-3xl bg-card border border-border/20 shadow-sm p-6 overflow-hidden">
               <ForecastCarousel />
             </div>
           </section>
 
-          <section className="w-full">
-            <h2 className="text-sm font-medium text-foreground mb-4">7-Day Projection</h2>
-            <div className="w-full rounded-3xl bg-card border border-border/40 shadow-sm p-6">
+          {/* 7-Day Forecast spanning full width at bottom */}
+          <section className="col-span-1 lg:col-span-3 mt-2">
+            <h2 className="text-xs font-semibold text-muted-foreground mb-4 uppercase tracking-widest font-sans">
+              7-Day Projection
+            </h2>
+            <div className="w-full rounded-3xl bg-card border border-border/20 shadow-sm p-6">
               <ProForecast />
             </div>
           </section>
         </div>
+      </div>
 
-        <div className="w-full xl:w-[420px] 2xl:w-[480px] shrink-0 flex flex-col gap-8">
-          <section className="w-full">
-             <h2 className="text-sm font-medium text-foreground mb-4">Environmental Status</h2>
-             <LifestyleGrid />
-          </section>
-          
-          <section className="w-full h-[300px] xl:h-[400px] rounded-3xl bg-card border border-border/40 shadow-sm overflow-hidden relative">
-             <WeatherMap />
-          </section>
+      {/* Right Area (Full Height Grey Background) */}
+      <div className="w-full xl:w-[460px] 2xl:w-[520px] shrink-0 bg-muted/40 border-l border-border/30 p-6 lg:p-8 xl:p-10 flex flex-col min-h-full">
+        <h2 className="text-sm font-semibold text-foreground mb-6 uppercase tracking-widest font-sans border-b border-border/30 pb-4">
+          Environmental Metrics
+        </h2>
+
+        {/* Ensure LifestyleGrid naturally fills the vertical space */}
+        <div className="flex-1">
+          <LifestyleGrid />
         </div>
-
       </div>
     </div>
   );

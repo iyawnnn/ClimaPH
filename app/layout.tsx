@@ -3,7 +3,8 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/sonner";
 import { ThemeProvider } from "@/components/theme-provider";
-import { Sidebar } from "@/components/layout/Sidebar"; // Corrected named import
+import { Sidebar } from "@/components/layout/Sidebar";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import "leaflet/dist/leaflet.css";
 
 const geistSans = Geist({
@@ -18,7 +19,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "ClimaPH",
-  description: "Weather app using Next.js and ShadCN UI",
+  description: "High-performance environmental telemetry dashboard.",
 };
 
 export default function RootLayout({
@@ -35,14 +36,16 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <div className="flex h-full w-full">
-            <Sidebar />
-            
-            <main className="flex-1 overflow-y-auto scroll-smooth z-10 will-change-scroll p-4 md:p-6 lg:p-8">
-              {children}
-            </main>
-          </div>
-          <Toaster />
+          <TooltipProvider delayDuration={200}>
+            <div className="flex h-full w-full">
+              <Sidebar />
+              
+              <main className="flex-1 flex flex-col overflow-y-auto scroll-smooth z-10 will-change-scroll">
+                {children}
+              </main>
+            </div>
+            <Toaster />
+          </TooltipProvider>
         </ThemeProvider>
       </body>
     </html>
