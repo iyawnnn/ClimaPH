@@ -10,7 +10,9 @@ interface LifestyleCheckerProps {
   forecastList: ForecastItem[] | null;
 }
 
-export default function LifestyleChecker({ forecastList }: LifestyleCheckerProps) {
+export default function LifestyleChecker({
+  forecastList,
+}: LifestyleCheckerProps) {
   const data = useMemo(() => {
     if (!forecastList) return null;
     return calculateDailyNecessities(forecastList);
@@ -28,27 +30,35 @@ export default function LifestyleChecker({ forecastList }: LifestyleCheckerProps
       <CardContent className="space-y-4">
         {/* Umbrella Block */}
         <div className="flex items-start gap-3">
-          <div className={`p-2 rounded-md ${data.needsUmbrella ? 'bg-blue-100 text-blue-600 dark:bg-blue-900/30' : 'bg-neutral-100 text-neutral-500 dark:bg-neutral-800'}`}>
+          <div
+            className={`p-2 rounded-md ${data.needsUmbrella ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"}`}
+          >
             <Umbrella className="w-5 h-5" />
           </div>
           <div>
             <p className="font-semibold text-sm">
               {data.needsUmbrella ? "Bring an Umbrella" : "No Umbrella Needed"}
             </p>
-            <p className="text-xs text-neutral-500">{data.umbrellaReason}</p>
+            <p className="text-xs text-muted-foreground">
+              {data.umbrellaReason}
+            </p>
           </div>
         </div>
 
         {/* Laundry Block */}
         <div className="flex items-start gap-3">
-          <div className={`p-2 rounded-md ${data.canDoLaundry ? 'bg-green-100 text-green-600 dark:bg-green-900/30' : 'bg-red-100 text-red-600 dark:bg-red-900/30'}`}>
+          <div
+            className={`p-2 rounded-md ${data.canDoLaundry ? "bg-secondary/20 text-secondary-foreground dark:text-secondary" : "bg-destructive/10 text-destructive"}`}
+          >
             <Shirt className="w-5 h-5" />
           </div>
           <div>
             <p className="font-semibold text-sm">
               {data.canDoLaundry ? "Safe for Laundry" : "Hold off on Laundry"}
             </p>
-            <p className="text-xs text-neutral-500">{data.laundryReason}</p>
+            <p className="text-xs text-muted-foreground">
+              {data.laundryReason}
+            </p>
           </div>
         </div>
       </CardContent>

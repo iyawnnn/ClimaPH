@@ -21,13 +21,13 @@ export default function CommuterIndex({ forecastList }: CommuterIndexProps) {
   const getRiskColor = (level: string) => {
     switch (level) {
       case "Extreme":
-        return "text-red-500";
+        return "text-destructive font-bold"; // Uses PH Red
       case "High":
-        return "text-orange-500";
+        return "text-destructive/80 font-semibold";
       case "Moderate":
-        return "text-yellow-500";
+        return "text-secondary font-bold drop-shadow-sm"; // Uses PH Yellow
       default:
-        return "text-green-500";
+        return "text-primary dark:text-primary-foreground font-medium"; // Uses PH Blue
     }
   };
 
@@ -52,7 +52,9 @@ export default function CommuterIndex({ forecastList }: CommuterIndexProps) {
               {riskData.probability}%
             </span>
             <div className="flex items-center gap-2 mt-1">
-              <span className={`text-sm font-medium ${getRiskColor(riskData.riskLevel)}`}>
+              <span
+                className={`text-sm font-medium ${getRiskColor(riskData.riskLevel)}`}
+              >
                 {riskData.riskLevel} Risk
               </span>
             </div>
