@@ -34,19 +34,21 @@ export function Sidebar() {
         <NavIcon href="/" icon={LayoutGrid} label="Dashboard" active={pathname === "/"} />
         <NavIcon href="/map" icon={Compass} label="Global Radar" active={pathname === "/map"} />
         
+        {/* Radix UI Safety: Tooltip -> Dialog -> Trigger */}
         <Dialog>
           <Tooltip>
             <TooltipTrigger asChild>
               <div className="inline-block">
                 <DialogTrigger asChild>
-                  <button className="w-12 h-12 lg:w-14 lg:h-14 flex items-center justify-center rounded-2xl transition-all duration-200 text-muted-foreground hover:bg-muted hover:text-foreground">
+                  <button className="w-12 h-12 lg:w-14 lg:h-14 flex items-center justify-center rounded-2xl transition-all duration-200 text-muted-foreground hover:bg-muted hover:text-foreground outline-none">
                     <Pin className="w-5 h-5 stroke-[1.5]" />
                     <span className="sr-only">Anchored Nodes</span>
                   </button>
                 </DialogTrigger>
               </div>
             </TooltipTrigger>
-            <TooltipContent side="right" sideOffset={16} className="bg-background border-border/40 font-sans shadow-xl rounded-xl">
+            {/* Inverted colors for maximum visibility */}
+            <TooltipContent side="right" sideOffset={16} className="bg-foreground text-background border-none font-sans font-semibold tracking-wide shadow-xl">
               Anchored Nodes
             </TooltipContent>
           </Tooltip>
@@ -84,7 +86,7 @@ export function Sidebar() {
           <TooltipTrigger asChild>
             <button
               onClick={toggleCrisisMode}
-              className={`w-12 h-12 lg:w-14 lg:h-14 flex items-center justify-center rounded-2xl transition-all duration-300 border ${
+              className={`w-12 h-12 lg:w-14 lg:h-14 flex items-center justify-center rounded-2xl transition-all duration-300 border outline-none ${
                 isCrisisMode 
                   ? "bg-[#CE1126] text-white border-[#CE1126] animate-pulse shadow-[0_0_15px_rgba(206,17,38,0.5)]" 
                   : "border-transparent text-muted-foreground hover:bg-muted hover:text-foreground"
@@ -94,7 +96,7 @@ export function Sidebar() {
               <span className="sr-only">Toggle Crisis Mode</span>
             </button>
           </TooltipTrigger>
-          <TooltipContent side="right" sideOffset={16} className="bg-background border-border/40 font-sans shadow-xl rounded-xl">
+          <TooltipContent side="right" sideOffset={16} className="bg-foreground text-background border-none font-sans font-semibold tracking-wide shadow-xl">
             {isCrisisMode ? "Disable Crisis Protocol" : "Enable Crisis Protocol"}
           </TooltipContent>
         </Tooltip>
@@ -103,14 +105,14 @@ export function Sidebar() {
           <TooltipTrigger asChild>
             <button
               onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-              className="w-12 h-12 lg:w-14 lg:h-14 flex items-center justify-center rounded-2xl text-muted-foreground hover:bg-muted hover:text-foreground transition-all duration-200"
+              className="w-12 h-12 lg:w-14 lg:h-14 flex items-center justify-center rounded-2xl text-muted-foreground hover:bg-muted hover:text-foreground transition-all duration-200 outline-none"
             >
               <Sun className="w-5 h-5 stroke-[1.5] hidden dark:block" />
               <Moon className="w-5 h-5 stroke-[1.5] block dark:hidden" />
               <span className="sr-only">Toggle Theme</span>
             </button>
           </TooltipTrigger>
-          <TooltipContent side="right" sideOffset={16} className="bg-background border-border/40 font-sans shadow-xl rounded-xl">
+          <TooltipContent side="right" sideOffset={16} className="bg-foreground text-background border-none font-sans font-semibold tracking-wide shadow-xl">
             Toggle Interface Theme
           </TooltipContent>
         </Tooltip>
@@ -125,7 +127,7 @@ function NavIcon({ href, icon: Icon, label, active = false }: { href: string; ic
       <TooltipTrigger asChild>
         <Link 
           href={href} 
-          className={`w-12 h-12 lg:w-14 lg:h-14 flex items-center justify-center rounded-2xl transition-all duration-200 ${
+          className={`w-12 h-12 lg:w-14 lg:h-14 flex items-center justify-center rounded-2xl transition-all duration-200 outline-none ${
             active 
               ? "bg-[#0038A8] text-white shadow-md shadow-[#0038A8]/30" 
               : "text-muted-foreground hover:bg-muted hover:text-foreground"
@@ -135,7 +137,7 @@ function NavIcon({ href, icon: Icon, label, active = false }: { href: string; ic
           <span className="sr-only">{label}</span>
         </Link>
       </TooltipTrigger>
-      <TooltipContent side="right" sideOffset={16} className="bg-background border-border/40 font-sans shadow-xl rounded-xl">
+      <TooltipContent side="right" sideOffset={16} className="bg-foreground text-background border-none font-sans font-semibold tracking-wide shadow-xl">
         {label}
       </TooltipContent>
     </Tooltip>
