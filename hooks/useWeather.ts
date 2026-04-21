@@ -15,20 +15,21 @@ const fetcher = async (url: string) => {
 };
 
 export const useWeather = () => {
-  // 1. Subscribe to the global Zustand store
   const target = useAppStore((state) => state.targetLocation);
   const setTarget = useAppStore((state) => state.setTargetLocation);
   
   const [error, setError] = useState("");
   const [isGeocoding, setIsGeocoding] = useState(false);
 
-  // 2. SWR watches these URLs. If 'target' is null, fetching is paused.
-  const weatherUrl = target && OWM_KEY
-    ? `https://api.openweathermap.org/data/2.5/weather?lat=${target.lat}&lon=${target.lng}&appid=${OWM_KEY}&units=metric`
+  // Extract longitude aggressively across different coordinate object standards
+  const safeLon = target ? ((target as any).lon ?? target.lng ?? (target as any).longitude) : undefined;
+
+  const weatherUrl = target && safeLon !== undefined && OWM_KEY
+    ? `https://api.openweathermap.org/data/2.5/weather?lat=${target.lat}&lon=${safeLon}&appid=${OWM_KEY}&units=metric`
     : null;
 
-  const forecastUrl = target && OWM_KEY
-    ? `https://api.openweathermap.org/data/2.5/forecast?lat=${target.lat}&lon=${target.lng}&appid=${OWM_KEY}&units=metric`
+  const forecastUrl = target && safeLon !== undefined && OWM_KEY
+    ? `https://api.openweathermap.org/data/2.5/forecast?lat=${target.lat}&lon=${safeLon}&appid=${OWM_KEY}&units=metric`
     : null;
 
   const { data: rawWeather, error: weatherError, isLoading: loadingWeatherSWR } = useSWR(weatherUrl, fetcher, {
@@ -44,7 +45,6 @@ export const useWeather = () => {
     revalidateOnFocus: false,
   });
 
-  // 3. Process parallel responses
   const weather = rawWeather && target ? { ...rawWeather, displayName: target.display } : null;
   let fiveDayForecast = null;
   let twelveHourForecast = null;
@@ -61,7 +61,6 @@ export const useWeather = () => {
     twelveHourForecast = [currentPoint, ...rawForecast.list].slice(0, 9);
   }
 
-  // 4. Temporary helper function to keep page.tsx from breaking during Phase 3
   const getWeather = async (latInput?: number, lonInput?: number, displayNameInput?: string) => {
     setError("");
     if (latInput && lonInput) {
@@ -78,12 +77,11 @@ export const useWeather = () => {
             display = makeDisplayNameFromComponents(r?.components, r?.formatted) || "Unknown Location";
           }
         } catch (e) {
-          // Proceed with "Unknown Location" if rate-limited
+          // Proceed with "Unknown Location" on error
         }
         setIsGeocoding(false);
       }
       
-      // Updating the store triggers SWR automatically
       setTarget({ lat: latInput, lng: lonInput, display });
     }
   };

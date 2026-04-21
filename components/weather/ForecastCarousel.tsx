@@ -1,80 +1,127 @@
 "use client";
 
-import {
-  Carousel,
-  CarouselContent,
-  CarouselItem,
-  CarouselNext,
-  CarouselPrevious,
-} from "@/components/ui/carousel";
-import { Cloud, CloudRain, Sun, CloudLightning } from "lucide-react";
 import { useWeather } from "@/hooks/useWeather";
-import { useAppStore } from "@/store/useAppStore";
+import { CartesianGrid, LabelList, Line, LineChart, XAxis } from "recharts";
+import { Activity } from "lucide-react";
+import {
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+  type ChartConfig,
+} from "@/components/ui/chart";
 import { Skeleton } from "@/components/ui/skeleton";
 
-const getWeatherIcon = (desc?: string) => {
-  const safeDesc = (desc || "").toLowerCase();
-  if (safeDesc.includes("rain")) return <CloudRain className="h-6 w-6 text-primary/70" />;
-  if (safeDesc.includes("cloud")) return <Cloud className="h-6 w-6 text-muted-foreground" />;
-  if (safeDesc.includes("thunder")) return <CloudLightning className="h-6 w-6 text-primary/70" />;
-  return <Sun className="h-6 w-6 text-primary/70" />;
-};
+const chartConfig = {
+  temp: {
+    label: "Temperature",
+    color: "var(--chart-1)",
+  },
+} satisfies ChartConfig;
 
 export default function ForecastCarousel() {
   const { twelveHourForecast, loadingWeather } = useWeather();
-  const { unit } = useAppStore();
 
   if (loadingWeather || !twelveHourForecast) {
-    return (
-      <div className="flex gap-4 overflow-hidden w-full">
-        {Array.from({ length: 4 }).map((_, i) => (
-          <Skeleton key={i} className="h-[140px] w-full rounded-3xl bg-muted/30 border border-border/30" />
-        ))}
-      </div>
-    );
+    return <Skeleton className="w-full h-full min-h-[250px] rounded-[2rem] bg-muted/20 border-none" />;
   }
 
-  if (twelveHourForecast.length === 0) {
-    return (
-      <div className="flex items-center justify-center p-8 text-sm text-muted-foreground">
-        No forecast sequence available.
-      </div>
-    );
+  const chartData = twelveHourForecast.map((item) => {
+    const date = new Date(item.dt * 1000);
+    const timeString = date.toLocaleTimeString([], { hour: "numeric" });
+    return {
+      time: item.isCurrent ? "Now" : timeString,
+      temp: Math.round(item.main.temp),
+    };
+  });
+
+  const currentTemp = chartData[0]?.temp || 0;
+  const lastTemp = chartData[chartData.length - 1]?.temp || 0;
+  const tempDiff = lastTemp - currentTemp;
+  
+  let trendText = "Temperature remaining stable";
+  if (tempDiff > 0) {
+    trendText = `Warming up by ${tempDiff}°C`;
+  } else if (tempDiff < 0) {
+    trendText = `Cooling down by ${Math.abs(tempDiff)}°C`;
   }
 
   return (
-    <div className="w-full relative px-2">
-      <Carousel opts={{ align: "start", loop: false }} className="w-full">
-        <CarouselContent className="-ml-4">
-          {twelveHourForecast.map((info: any, index: number) => {
-            const dateObj = new Date(info.dt * 1000);
-            const timeString = info.isCurrent ? "Now" : dateObj.toLocaleTimeString([], { hour: 'numeric' });
-            
-            const rawTemp = info.main?.temp ?? 0;
-            const displayTemp = unit === "C" ? Math.round(rawTemp) : Math.round((rawTemp * 9) / 5 + 32);
+    <div className="flex flex-col w-full h-full justify-between">
+      <div className="flex flex-col">
+        <h2 className="text-xl font-bold tracking-tight text-foreground font-sans">
+          12-Hour Trajectory
+        </h2>
+        <p className="text-sm text-muted-foreground font-sans mt-1">
+          Temperature projection for the upcoming hours
+        </p>
+      </div>
 
-            return (
-              <CarouselItem key={index} className="pl-4 basis-1/2 md:basis-1/3 xl:basis-1/4">
-                <div className="flex flex-col items-center justify-center p-5 rounded-3xl bg-muted/30 border border-border/30 h-full hover:bg-muted/50 transition-all duration-300">
-                  <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider font-sans mb-3 text-center">
-                    {timeString}
-                  </span>
-                  <div className="mb-3">
-                    {getWeatherIcon(info.weather?.[0]?.description)}
-                  </div>
-                  <span className="text-xl font-bold tracking-tight text-foreground font-sans">
-                    {displayTemp}°
-                  </span>
-                </div>
-              </CarouselItem>
-            );
-          })}
-        </CarouselContent>
-        <div className="hidden md:block">
-          <CarouselPrevious className="-left-4 bg-background/50 border-border/20" />
-          <CarouselNext className="-right-4 bg-background/50 border-border/20" />
-        </div>
-      </Carousel>
+      <div className="w-full h-[140px] my-auto">
+        <ChartContainer config={chartConfig} className="w-full h-full">
+          <LineChart
+            accessibilityLayer
+            data={chartData}
+            margin={{
+              top: 24,
+              left: 12,
+              right: 12,
+              bottom: 0,
+            }}
+          >
+            <CartesianGrid vertical={false} strokeDasharray="3 3" opacity={0.4} />
+            <XAxis
+              dataKey="time"
+              tickLine={false}
+              axisLine={false}
+              tickMargin={12}
+              fontSize={12}
+              className="font-sans font-medium fill-muted-foreground"
+            />
+            <ChartTooltip
+              cursor={{ stroke: "var(--border)", strokeWidth: 1, strokeDasharray: "4 4" }}
+              content={
+                <ChartTooltipContent
+                  indicator="line"
+                  nameKey="temp"
+                  hideLabel
+                />
+              }
+            />
+            <Line
+              dataKey="temp"
+              type="monotone"
+              stroke="var(--color-temp)"
+              strokeWidth={3}
+              dot={{
+                fill: "var(--background)",
+                stroke: "var(--color-temp)",
+                strokeWidth: 2,
+                r: 4,
+              }}
+              activeDot={{
+                fill: "var(--color-temp)",
+                stroke: "var(--background)",
+                strokeWidth: 2,
+                r: 6,
+              }}
+            >
+              <LabelList
+                position="top"
+                offset={12}
+                className="fill-foreground font-sans font-semibold"
+                fontSize={12}
+                dataKey="temp"
+                formatter={(value: number) => `${value}°`}
+              />
+            </Line>
+          </LineChart>
+        </ChartContainer>
+      </div>
+      
+      <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground font-sans">
+        <Activity className="h-4 w-4 text-[#0032A0]" />
+        <span>{trendText} over the next 12 hours.</span>
+      </div>
     </div>
   );
 }

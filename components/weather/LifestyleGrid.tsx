@@ -1,15 +1,43 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { useAppStore } from "@/store/useAppStore";
 import { useWeather } from "@/hooks/useWeather";
 import { Leaf, Wind } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { calculateAQI } from "@/lib/weather-utils";
 
 export default function LifestyleGrid() {
-  const { isCrisisMode } = useAppStore();
+  const { isCrisisMode, targetLocation } = useAppStore();
   const { weather, loadingWeather } = useWeather();
+  const [realAqi, setRealAqi] = useState<number | null>(null);
+  const [pm25, setPm25] = useState<number | null>(null);
 
-  if (loadingWeather || !weather) {
+  useEffect(() => {
+    if (!targetLocation) return;
+
+    const fetchAirQuality = async () => {
+      try {
+        const safeLon = (targetLocation as any).lon ?? (targetLocation as any).lng ?? (targetLocation as any).longitude;
+        if (safeLon === undefined) return;
+
+        const response = await fetch(`/api/telemetry?lat=${targetLocation.lat}&lon=${safeLon}`);
+        if (!response.ok) throw new Error("Failed to fetch telemetry");
+        
+        const result = await response.json();
+        const rawPm25 = result.airData.list[0].components.pm2_5;
+        
+        setPm25(rawPm25);
+        setRealAqi(calculateAQI(rawPm25));
+      } catch (error) {
+        console.error("Air quality fetch error:", error);
+      }
+    };
+
+    fetchAirQuality();
+  }, [targetLocation]);
+
+  if (loadingWeather || !weather || realAqi === null) {
     return <Skeleton className="w-full h-full min-h-[380px] rounded-[2rem] bg-muted/20 border-none" />;
   }
 
@@ -30,31 +58,20 @@ export default function LifestyleGrid() {
   };
   const windDirection = getWindDirection(windDegrees);
 
-  // 2. AQI Extraction & Deterministic Fallback
-  // Note: OpenWeatherMap requires a separate call to /air_pollution for real AQI.
-  // This calculates a stable placeholder based on visibility and humidity until the API is connected.
-  const aqiNode = current?.air_quality;
-  let aqiValue = aqiNode?.["us-epa-index"] ?? aqiNode?.pm2_5;
-  
-  if (!aqiValue) {
-    const vis = parseFloat(current?.visibility ? (current.visibility / 1000).toString() : (current?.vis_km?.toString() ?? "10"));
-    const hum = parseFloat(current?.main?.humidity?.toString() ?? current?.humidity?.toString() ?? "50");
-    aqiValue = Math.max(12, Math.round((10 - Math.min(vis, 10)) * 15 + (hum / 12)));
-  }
-
-  // 3. Status and Theme Colors
+  // 2. Status and Theme Colors
+  let aqiValue = realAqi;
   let aqiStatus = "Good";
-  let statusColor = "text-[#0038A8]"; // Philippine Royal Blue
+  let statusColor = "text-[#0038A8]"; 
   let statusBg = "bg-[#0038A8]/10";
 
   if (aqiValue > 50) {
     aqiStatus = "Moderate";
-    statusColor = "text-[#FCD116]"; // Philippine Golden Yellow
+    statusColor = "text-[#FCD116]"; 
     statusBg = "bg-[#FCD116]/10";
   }
   if (aqiValue > 100) {
     aqiStatus = "Unhealthy";
-    statusColor = "text-[#CE1126]"; // Philippine Scarlet Red
+    statusColor = "text-[#CE1126]"; 
     statusBg = "bg-[#CE1126]/10";
   }
   if (isCrisisMode) {
@@ -76,7 +93,7 @@ export default function LifestyleGrid() {
             Air Quality
           </h2>
           <p className="text-base text-muted-foreground capitalize font-sans mt-1">
-            Current Telemetry
+            Particulate Matter: PM2.5 ({pm25} µg/m³)
           </p>
         </div>
         <Leaf className={`h-8 w-8 ${statusColor} opacity-50`} strokeWidth={2} />
@@ -94,7 +111,6 @@ export default function LifestyleGrid() {
           </div>
         </div>
 
-        {/* Wind Direction (Added to match your image) */}
         <div className="mt-4 text-base font-medium text-muted-foreground font-sans flex items-center gap-2">
           <Wind className="w-5 h-5 opacity-70" strokeWidth={2} />
           {windDirection}
@@ -114,7 +130,6 @@ export default function LifestyleGrid() {
         {/* The Smooth Gradient Gauge */}
         <div className="relative h-3 w-full bg-gradient-to-r from-[#0038A8] via-[#FCD116] to-[#CE1126] rounded-full overflow-visible shadow-inner border border-border/20">
           
-          {/* The Indicator Knob */}
           <div 
             className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-5 h-5 bg-background border-[4px] border-foreground rounded-full shadow-md transition-all duration-1000 ease-out z-20"
             style={{ left: `${aqiPercent}%` }}

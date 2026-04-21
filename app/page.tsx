@@ -10,6 +10,7 @@ import ForecastCarousel from "@/components/weather/ForecastCarousel";
 import ProForecast from "@/components/weather/ProForecast";
 import LifestyleGrid from "@/components/weather/LifestyleGrid";
 import ForecastChart from "@/components/weather/ForecastChart";
+import TomorrowPreview from "@/components/weather/TomorrowPreview";
 import SearchBar from "@/components/search/SearchBar";
 import Suggestions from "@/components/search/Suggestions";
 import { motion, AnimatePresence } from "framer-motion";
@@ -26,9 +27,16 @@ export default function DashboardPage() {
 
   useEffect(() => {
     if (targetLocation && !weather && !loadingWeather) {
-      // Safely handle both OpenWeather's 'lon' and OpenCage's 'lng'
-      const safeLon = targetLocation.lon ?? (targetLocation as any).lng;
-      getWeather(targetLocation.lat, safeLon);
+      const safeLon =
+        targetLocation.lon ??
+        (targetLocation as any).lng ??
+        (targetLocation as any).longitude;
+
+      if (safeLon !== undefined) {
+        getWeather(targetLocation.lat, safeLon);
+      } else {
+        console.error("Longitude mapping failed for payload:", targetLocation);
+      }
     }
   }, [targetLocation, weather, loadingWeather, getWeather]);
 
@@ -80,11 +88,7 @@ export default function DashboardPage() {
 
   return (
     <div className="flex flex-col xl:flex-row w-full min-h-full">
-      {/* =========================================
-          LEFT AREA (White Background) 
-      ========================================= */}
       <div className="flex-1 flex flex-col min-w-0 bg-background p-6 lg:p-8 xl:p-10">
-        {/* HEADER */}
         <header className="w-full flex flex-col lg:flex-row lg:items-center justify-between gap-6 shrink-0 mb-10">
           <div className="flex items-center gap-4">
             <div className="relative w-12 h-12 rounded-full overflow-hidden shrink-0 shadow-sm border border-border/40">
@@ -92,6 +96,7 @@ export default function DashboardPage() {
                 src="/placeholder-avatar.webp"
                 alt="Profile"
                 fill
+                sizes="48px"
                 className="object-cover"
                 priority
               />
@@ -152,31 +157,32 @@ export default function DashboardPage() {
           </div>
         </header>
 
-        {/* LEFT COLUMN CONTENT */}
         <div className="flex flex-col gap-6 lg:gap-8 flex-1">
-          {/* THE 2-CARD TOP ROW */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 lg:gap-6 w-full shrink-0 items-stretch">
-            <section className="w-full rounded-[2rem] bg-card border border-border/40 shadow-sm p-8 min-h-[450px] flex flex-col relative overflow-hidden transition-all hover:shadow-md">
+            <section className="w-full rounded-[2rem] bg-card border border-border/40 shadow-sm p-8 min-h-[400px] flex flex-col relative overflow-hidden transition-all hover:shadow-md">
               <CurrentWeather />
             </section>
 
-            <section className="w-full rounded-[2rem] bg-card border border-border/40 shadow-sm p-8 min-h-[450px] flex flex-col relative overflow-hidden transition-all hover:shadow-md">
+            <section className="w-full rounded-[2rem] bg-card border border-border/40 shadow-sm p-8 min-h-[400px] flex flex-col relative overflow-hidden transition-all hover:shadow-md">
               <LifestyleGrid />
             </section>
           </div>
 
-          {/* Today's Sequence */}
-          <section className="w-full shrink-0 flex-1 flex flex-col mt-2">
-            <div className="w-full flex-1 rounded-3xl bg-card border border-border/40 shadow-sm p-6 overflow-hidden">
+          {/* Today's Sequence & Tomorrow Preview */}
+          <section className="w-full shrink-0 flex-1 flex flex-col lg:flex-row gap-3 lg:gap-6 mt-2">
+            
+            <div className="flex-1 rounded-[2rem] bg-card border border-border/40 shadow-sm p-6 overflow-hidden flex flex-col">
               <ForecastCarousel />
             </div>
+
+            <div className="w-full lg:w-[275px] shrink-0 rounded-[2rem] bg-card border border-border/40 shadow-sm p-6 flex flex-col justify-between items-center text-center hover:shadow-md transition-all">
+              <TomorrowPreview />
+            </div>
+
           </section>
         </div>
       </div>
 
-      {/* =========================================
-          RIGHT AREA (Grey Background) 
-      ========================================= */}
       <div className="w-full xl:w-[440px] 2xl:w-[480px] shrink-0 bg-muted/40 border-l border-border/30 p-6 lg:p-8 xl:p-10 flex flex-col gap-6 lg:gap-8 min-h-full">
         <section className="w-full h-[260px] rounded-3xl bg-card border border-border/40 shadow-sm p-6 shrink-0 flex flex-col">
           <ForecastChart />
