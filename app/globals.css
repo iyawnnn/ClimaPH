@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=Google+Sans:ital,opsz,wght@0,17..18,400..700;1,17..18,400..700&display=swap');
 @import "tailwindcss";
 @import "tw-animate-css";
 
@@ -6,7 +7,10 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
+  
+  /* Updated Font Variable */
+  --font-sans: "Google Sans", ui-sans-serif, system-ui, sans-serif;
+  
   --font-mono: var(--font-geist-mono);
   
   --color-ring: var(--ring);
@@ -86,7 +90,7 @@
   --popover: #0f172a;
   --popover-foreground: #f8fafc;
   
-  /* Philippine Flag Colors (Slightly brightened for dark mode legibility if needed, but retaining hex) */
+  /* Philippine Flag Colors */
   --primary: #0032A0; 
   --primary-foreground: #FFFFFF;
   --secondary: #FED141; 

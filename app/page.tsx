@@ -9,8 +9,8 @@ import CurrentWeather from "@/components/weather/CurrentWeather";
 import ForecastCarousel from "@/components/weather/ForecastCarousel";
 import ProForecast from "@/components/weather/ProForecast";
 import LifestyleGrid from "@/components/weather/LifestyleGrid";
-import ForecastChart from "@/components/weather/ForecastChart";
 import TomorrowPreview from "@/components/weather/TomorrowPreview";
+import SolarProgression from "@/components/weather/SolarProgression";
 import SearchBar from "@/components/search/SearchBar";
 import Suggestions from "@/components/search/Suggestions";
 import { motion, AnimatePresence } from "framer-motion";
@@ -87,14 +87,14 @@ export default function DashboardPage() {
   };
 
   return (
-    <div className="flex flex-col xl:flex-row w-full min-h-full">
+    <div className="flex flex-col xl:flex-row w-full min-h-full font-sans">
       <div className="flex-1 flex flex-col min-w-0 bg-background p-6 lg:p-8 xl:p-10">
         <header className="w-full flex flex-col lg:flex-row lg:items-center justify-between gap-6 shrink-0 mb-10">
           <div className="flex items-center gap-4">
             <div className="relative w-12 h-12 rounded-full overflow-hidden shrink-0 shadow-sm border border-border/40">
               <Image
                 src="/placeholder-avatar.webp"
-                alt="Profile"
+                alt="Profile picture of the user"
                 fill
                 sizes="48px"
                 className="object-cover"
@@ -102,10 +102,10 @@ export default function DashboardPage() {
               />
             </div>
             <div>
-              <h1 className="text-xl font-bold tracking-tight text-foreground font-sans">
+              <h1 className="text-xl font-bold tracking-tight text-foreground">
                 {getWeatherGreeting()}
               </h1>
-              <p className="text-xs text-muted-foreground mt-0.5 font-sans uppercase tracking-wider">
+              <p className="text-xs text-muted-foreground mt-0.5 uppercase tracking-wider">
                 Telemetry for{" "}
                 <span className="text-foreground font-semibold">
                   {targetLocation?.display || "Unknown"}
@@ -148,11 +148,11 @@ export default function DashboardPage() {
               onClick={handleCurrentLocation}
               disabled={isLocating}
               className="h-full aspect-square flex items-center justify-center rounded-xl bg-[#0038A8] text-white hover:bg-[#002776] transition-all duration-200 shadow-md shrink-0"
+              aria-label="Use current location"
             >
               <LocateFixed
                 className={`w-4 h-4 stroke-[2] ${isLocating ? "animate-spin text-[#FCD116]" : ""}`}
               />
-              <span className="sr-only">Use Current Location</span>
             </button>
           </div>
         </header>
@@ -168,9 +168,7 @@ export default function DashboardPage() {
             </section>
           </div>
 
-          {/* Today's Sequence & Tomorrow Preview */}
           <section className="w-full shrink-0 flex-1 flex flex-col lg:flex-row gap-3 lg:gap-6 mt-2">
-            
             <div className="flex-1 rounded-[2rem] bg-card border border-border/40 shadow-sm p-6 overflow-hidden flex flex-col">
               <ForecastCarousel />
             </div>
@@ -178,24 +176,27 @@ export default function DashboardPage() {
             <div className="w-full lg:w-[275px] shrink-0 rounded-[2rem] bg-card border border-border/40 shadow-sm p-6 flex flex-col justify-between items-center text-center hover:shadow-md transition-all">
               <TomorrowPreview />
             </div>
-
           </section>
         </div>
       </div>
 
       <div className="w-full xl:w-[440px] 2xl:w-[480px] shrink-0 bg-muted/40 border-l border-border/30 p-6 lg:p-8 xl:p-10 flex flex-col gap-6 lg:gap-8 min-h-full">
-        <section className="w-full h-[260px] rounded-3xl bg-card border border-border/40 shadow-sm p-6 shrink-0 flex flex-col">
-          <ForecastChart />
+        
+        {/* NEW SOLAR PROGRESSION WIDGET (BORDERLESS) */}
+        <section className="w-full shrink-0 flex items-center justify-center my-4">
+          <SolarProgression />
         </section>
 
+        {/* 3-DAY WEATHER PREDICTION */}
         <section className="w-full flex-1 flex flex-col min-h-[300px]">
-          <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-widest font-sans mb-4 shrink-0">
-            7-Day Projection
+          <h2 className="text-2xl font-extrabold text-foreground uppercase tracking-tight mb-6 shrink-0">
+            Weather Prediction
           </h2>
-          <div className="w-full flex-1 rounded-3xl bg-card border border-border/40 shadow-sm p-6 overflow-y-auto scrollbar-hide">
+          <div className="w-full flex-1 overflow-y-auto scrollbar-hide pb-4">
             <ProForecast />
           </div>
         </section>
+        
       </div>
     </div>
   );

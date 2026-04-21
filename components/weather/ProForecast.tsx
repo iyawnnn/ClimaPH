@@ -7,10 +7,10 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 const getWeatherIcon = (desc?: string) => {
   const safeDesc = (desc || "").toLowerCase();
-  if (safeDesc.includes("rain")) return <CloudRain className="h-5 w-5 text-primary/70" />;
-  if (safeDesc.includes("cloud")) return <Cloud className="h-5 w-5 text-muted-foreground" />;
-  if (safeDesc.includes("thunder")) return <CloudLightning className="h-5 w-5 text-primary/70" />;
-  return <Sun className="h-5 w-5 text-primary/70" />;
+  if (safeDesc.includes("rain")) return <CloudRain className="h-6 w-6 text-blue-500" />;
+  if (safeDesc.includes("cloud")) return <Cloud className="h-6 w-6 text-neutral-400" />;
+  if (safeDesc.includes("thunder")) return <CloudLightning className="h-6 w-6 text-purple-500" />;
+  return <Sun className="h-6 w-6 text-amber-500" />;
 };
 
 export default function ProForecast() {
@@ -19,15 +19,15 @@ export default function ProForecast() {
 
   if (loadingWeather || !fiveDayForecast) {
     return (
-      <div className="flex flex-col gap-4 w-full">
-        {Array.from({ length: 5 }).map((_, i) => (
-          <Skeleton key={i} className="h-12 w-full rounded-xl bg-muted/30 border border-border/30" />
+      <div className="flex flex-col gap-3 w-full">
+        {/* Changed skeleton length to 3 to match the UI behavior */}
+        {Array.from({ length: 3 }).map((_, i) => (
+          <Skeleton key={i} className="h-[84px] w-full rounded-2xl bg-muted/40 border border-border/40" />
         ))}
       </div>
     );
   }
 
-  // Group the 3-hour blocks into daily summaries
   const dailyMap = new Map();
   fiveDayForecast.forEach((item: any) => {
     const date = new Date(item.dt * 1000);
@@ -47,8 +47,8 @@ export default function ProForecast() {
     }
   });
 
-  // Convert the map back to an array (OWM free tier gives 5 days)
-  const dailyData = Array.from(dailyMap.values());
+  // Limit the generated items to exactly 3 days.
+  const dailyData = Array.from(dailyMap.values()).slice(0, 3);
 
   if (dailyData.length === 0) {
     return (
@@ -59,7 +59,7 @@ export default function ProForecast() {
   }
 
   return (
-    <div className="flex flex-col gap-3 w-full">
+    <div className="flex flex-col gap-3 w-full font-sans">
       {dailyData.map((day: any, index: number) => {
         const dateObj = new Date(day.dt * 1000);
         const dayName = index === 0 ? "Today" : dateObj.toLocaleDateString("en-US", { weekday: "long" });
@@ -70,18 +70,19 @@ export default function ProForecast() {
         return (
           <div 
             key={index} 
-            className="flex items-center justify-between p-3 rounded-2xl hover:bg-muted/30 transition-colors"
+            className="flex items-center justify-between p-5 rounded-2xl bg-card border border-border/40 shadow-sm hover:shadow-md hover:border-border/60 transition-all duration-300"
           >
-            <span className="w-24 text-sm font-medium text-foreground">{dayName}</span>
-            <div className="flex flex-1 items-center justify-center gap-2">
-              {getWeatherIcon(day.description)}
-              <span className="text-xs text-muted-foreground hidden sm:block w-20 truncate text-center capitalize">
-                {day.description}
-              </span>
+            <div className="flex flex-col gap-1">
+              <span className="text-base font-semibold tracking-tight text-foreground">{dayName}</span>
+              <span className="text-sm text-muted-foreground capitalize">{day.description}</span>
             </div>
-            <div className="flex gap-3 w-20 justify-end">
-              <span className="text-sm font-bold text-foreground">{displayHigh}°</span>
-              <span className="text-sm font-medium text-muted-foreground">{displayLow}°</span>
+            
+            <div className="flex items-center gap-4">
+              {getWeatherIcon(day.description)}
+              <div className="flex items-baseline gap-3 w-16 justify-end">
+                <span className="text-xl font-bold tracking-tighter text-foreground">{displayHigh}°</span>
+                <span className="text-base font-medium text-muted-foreground">{displayLow}°</span>
+              </div>
             </div>
           </div>
         );
