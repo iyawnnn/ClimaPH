@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import { useWeather } from "@/hooks/useWeather";
 import { useAppStore } from "@/store/useAppStore";
-import { motion } from "framer-motion";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export default function SolarProgression() {
@@ -38,11 +37,35 @@ export default function SolarProgression() {
       let srDisplay = "06:00 AM";
       let ssDisplay = "06:00 PM";
 
+      const parseTimeString = (timeStr: string) => {
+        try {
+          const match = timeStr.match(/(\d+):(\d+)\s*(AM|PM)/i);
+          if (match) {
+            let hrs = parseInt(match[1], 10);
+            const mins = parseInt(match[2], 10);
+            const isPM = match[3].toUpperCase() === "PM";
+            if (hrs === 12) hrs = isPM ? 12 : 0;
+            else if (isPM) hrs += 12;
+            
+            const d = new Date();
+            d.setHours(hrs, mins, 0, 0);
+            return d.getTime();
+          }
+          return new Date(`${new Date().toDateString()} ${timeStr}`).getTime();
+        } catch {
+          return null;
+        }
+      };
+
       const astro = weather.forecast?.forecastday?.[0]?.astro;
       if (astro?.sunrise && astro?.sunset) {
-        const today = new Date().toDateString();
-        sunriseTime = new Date(`${today} ${astro.sunrise}`).getTime();
-        sunsetTime = new Date(`${today} ${astro.sunset}`).getTime();
+        const parsedSr = parseTimeString(astro.sunrise);
+        const parsedSs = parseTimeString(astro.sunset);
+        
+        if (parsedSr && parsedSs) {
+          sunriseTime = parsedSr;
+          sunsetTime = parsedSs;
+        }
         srDisplay = astro.sunrise;
         ssDisplay = astro.sunset;
       } else if (weather.sys?.sunrise && weather.sys?.sunset) {
@@ -60,8 +83,13 @@ export default function SolarProgression() {
 
     const { now, sunriseTime, sunsetTime } = getTimestamps();
     
-    let currentProgress = (now - sunriseTime) / (sunsetTime - sunriseTime);
+    let currentProgress = 0;
+    if (sunsetTime > sunriseTime) {
+      currentProgress = (now - sunriseTime) / (sunsetTime - sunriseTime);
+    }
+    
     currentProgress = Math.max(0, Math.min(1, currentProgress)); 
+    if (isNaN(currentProgress)) currentProgress = 0;
     
     setProgress(currentProgress);
   }, [weather]);
@@ -75,13 +103,13 @@ export default function SolarProgression() {
   const cy = 150;
   const strokeWidth = 3;
   
+  const arcLength = Math.PI * radius;
   const angle = Math.PI * (1 - progress);
   const sunX = cx + radius * Math.cos(angle);
   const sunY = cy - radius * Math.sin(angle);
 
   const arcPath = `M ${cx - radius} ${cy} A ${radius} ${radius} 0 0 1 ${cx + radius} ${cy}`;
 
-  // Safely extract temperature handling both OpenWeatherMap and WeatherAPI formats
   const rawTempC = weather?.current?.temp_c ?? weather?.main?.temp ?? weather?.current?.temp ?? 0;
   const rawTempF = weather?.current?.temp_f ?? (rawTempC * 9) / 5 + 32;
   const displayTemp = unit === "C" ? Math.round(rawTempC) : Math.round(rawTempF);
@@ -89,44 +117,51 @@ export default function SolarProgression() {
   const displayLocation = targetLocation?.display || weather?.location?.name || weather?.name || "Unknown Location";
 
   return (
-    <div className="w-full flex flex-col pt-2 pb-4 font-sans select-none">
+    <div className="w-full flex flex-col pt-0 -mt-2 pb-4 font-sans select-none">
       
-      {/* Redesigned Header */}
-      <div className="flex justify-between items-start w-full mb-8 px-2">
+      <div className="flex justify-between items-start w-full mb-6 px-2 pb-4 border-b border-border/50">
         <div className="flex flex-col">
           <h2 className="text-lg font-semibold tracking-tight text-foreground">
             Daylight Cycle
           </h2>
-          <span className="text-sm text-muted-foreground truncate max-w-[200px]">
+          <span className="text-sm text-foreground/70 truncate max-w-[200px]">
             {displayLocation}
           </span>
-          <div className="h-[1px] w-8 bg-border/60 mt-3 rounded-full" />
         </div>
         <div className="flex items-start">
-          <span className="text-3xl font-bold tracking-tight text-foreground">
-            {displayTemp}°
+          <span className="text-3xl font-bold tracking-tight text-primary dark:text-secondary transition-colors duration-300">
+            {displayTemp}°{unit}
           </span>
         </div>
       </div>
 
-      <div className="w-full flex items-center justify-center">
+      <div className="w-full flex items-center justify-center pt-2">
         <svg
           viewBox="0 0 320 180"
-          className="w-full max-w-sm overflow-visible drop-shadow-sm"
+          className="w-full max-w-sm overflow-visible"
           preserveAspectRatio="xMidYMax meet"
         >
           <defs>
-            <linearGradient id="sunGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+            {/* Added gradientUnits to prevent the horizontal line bug */}
+            <linearGradient id="sunGradient" x1="0%" y1="0%" x2="100%" y2="0%" gradientUnits="userSpaceOnUse">
               <stop offset="0%" stopColor="#f59e0b" stopOpacity="0.4" />
               <stop offset="50%" stopColor="#f59e0b" stopOpacity="1" />
               <stop offset="100%" stopColor="#6366f1" stopOpacity="0.8" />
             </linearGradient>
-            <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
-              <feGaussianBlur stdDeviation="4" result="blur" />
-              <feComposite in="SourceGraphic" in2="blur" operator="over" />
-            </filter>
           </defs>
 
+          {/* Base Horizontal Line with 15px Overlap */}
+          <line 
+            x1={cx - radius - 15} 
+            y1={cy} 
+            x2={cx + radius + 15} 
+            y2={cy} 
+            stroke="url(#sunGradient)" 
+            strokeWidth="1.5" 
+            strokeOpacity="0.4"
+          />
+
+          {/* Dotted Background Arc */}
           <path
             d={arcPath}
             fill="none"
@@ -134,43 +169,45 @@ export default function SolarProgression() {
             strokeWidth={strokeWidth}
             strokeDasharray="4 8"
             strokeLinecap="round"
-            className="text-muted-foreground/30"
+            className="text-border"
           />
 
-          <motion.path
+          {/* Solid Gradient Progress Arc */}
+          <path
             d={arcPath}
             fill="none"
             stroke="url(#sunGradient)"
             strokeWidth={strokeWidth}
             strokeLinecap="round"
-            initial={{ pathLength: 0 }}
-            animate={{ pathLength: progress }}
-            transition={{ duration: 1.5, ease: "easeOut" }}
+            strokeDasharray={arcLength}
+            strokeDashoffset={arcLength * (1 - progress)}
           />
 
-          <motion.g
-            initial={{ opacity: 0, x: cx - radius, y: cy }}
-            animate={{ opacity: 1, x: sunX, y: sunY }}
-            transition={{ duration: 1.5, ease: "easeOut" }}
-          >
-            <circle r="6" fill="#f59e0b" filter="url(#glow)" />
+          {/* Intersecting Point Circles with Theme Colors */}
+          <circle cx={cx - radius} cy={cy} r="4" fill="currentColor" className="text-primary dark:text-secondary transition-colors duration-300" />
+          <circle cx={cx + radius} cy={cy} r="4" fill="currentColor" className="text-primary dark:text-secondary transition-colors duration-300" />
+
+          {/* Instant Sun Group */}
+          <g transform={`translate(${sunX}, ${sunY})`}>
+            <circle r="6" fill="#f59e0b" />
             <circle r="12" fill="none" stroke="#f59e0b" strokeWidth="2" strokeOpacity="0.4" />
             <circle r="18" fill="none" stroke="#f59e0b" strokeWidth="1" strokeOpacity="0.1" />
-          </motion.g>
+          </g>
 
+          {/* Lifted Center Text */}
           <text
             x={cx}
-            y={cy - 40}
+            y={cy - 55}
             textAnchor="middle"
-            className="text-4xl font-bold fill-foreground tracking-tighter"
+            className="text-3xl font-bold fill-foreground tracking-tight"
           >
             {currentTime}
           </text>
           <text
             x={cx}
-            y={cy - 16}
+            y={cy - 28}
             textAnchor="middle"
-            className="text-xs font-semibold fill-muted-foreground uppercase tracking-widest"
+            className="text-sm font-medium fill-foreground"
           >
             Sunset at {sunsetDisplay}
           </text>
@@ -179,7 +216,7 @@ export default function SolarProgression() {
             x={cx - radius}
             y={cy + 24}
             textAnchor="middle"
-            className="text-[10px] font-bold fill-muted-foreground uppercase tracking-wider"
+            className="text-sm font-medium fill-foreground"
           >
             Sunrise
           </text>
@@ -188,7 +225,7 @@ export default function SolarProgression() {
             x={cx + radius}
             y={cy + 24}
             textAnchor="middle"
-            className="text-[10px] font-bold fill-muted-foreground uppercase tracking-wider"
+            className="text-sm font-medium fill-foreground"
           >
             Sunset
           </text>

@@ -20,9 +20,8 @@ export default function ProForecast() {
   if (loadingWeather || !fiveDayForecast) {
     return (
       <div className="flex flex-col gap-3 w-full">
-        {/* Changed skeleton length to 3 to match the UI behavior */}
         {Array.from({ length: 3 }).map((_, i) => (
-          <Skeleton key={i} className="h-[84px] w-full rounded-2xl bg-muted/40 border border-border/40" />
+          <Skeleton key={i} className="h-[76px] w-full rounded-2xl bg-muted/40 border border-border/40" />
         ))}
       </div>
     );
@@ -47,7 +46,6 @@ export default function ProForecast() {
     }
   });
 
-  // Limit the generated items to exactly 3 days.
   const dailyData = Array.from(dailyMap.values()).slice(0, 3);
 
   if (dailyData.length === 0) {
@@ -62,7 +60,7 @@ export default function ProForecast() {
     <div className="flex flex-col gap-3 w-full font-sans">
       {dailyData.map((day: any, index: number) => {
         const dateObj = new Date(day.dt * 1000);
-        const dayName = index === 0 ? "Today" : dateObj.toLocaleDateString("en-US", { weekday: "long" });
+        const formattedDate = dateObj.toLocaleDateString("en-US", { month: "short", day: "numeric" });
         
         const displayHigh = unit === "C" ? Math.round(day.max) : Math.round((day.max * 9) / 5 + 32);
         const displayLow = unit === "C" ? Math.round(day.min) : Math.round((day.min * 9) / 5 + 32);
@@ -70,19 +68,29 @@ export default function ProForecast() {
         return (
           <div 
             key={index} 
-            className="flex items-center justify-between p-5 rounded-2xl bg-card border border-border/40 shadow-sm hover:shadow-md hover:border-border/60 transition-all duration-300"
+            className="flex items-center justify-between p-4 rounded-2xl bg-card border border-border/40 shadow-sm hover:shadow-md hover:border-border/60 transition-all duration-300"
           >
-            <div className="flex flex-col gap-1">
-              <span className="text-base font-semibold tracking-tight text-foreground">{dayName}</span>
-              <span className="text-sm text-muted-foreground capitalize">{day.description}</span>
+            <div className="flex items-center gap-4">
+              <div className="flex items-center justify-center w-10 h-10 rounded-full bg-muted/30">
+                {getWeatherIcon(day.description)}
+              </div>
+              <div className="flex flex-col">
+                <span className="text-base font-semibold tracking-tight text-foreground">
+                  {formattedDate}
+                </span>
+                <span className="text-sm text-muted-foreground capitalize">
+                  {day.description}
+                </span>
+              </div>
             </div>
             
-            <div className="flex items-center gap-4">
-              {getWeatherIcon(day.description)}
-              <div className="flex items-baseline gap-3 w-16 justify-end">
-                <span className="text-xl font-bold tracking-tighter text-foreground">{displayHigh}°</span>
-                <span className="text-base font-medium text-muted-foreground">{displayLow}°</span>
-              </div>
+            <div className="flex items-baseline gap-1">
+              <span className="text-base font-bold tracking-tight text-foreground">
+                {displayHigh}°
+              </span>
+              <span className="text-sm font-medium text-muted-foreground">
+                / {displayLow}°
+              </span>
             </div>
           </div>
         );

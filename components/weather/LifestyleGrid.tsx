@@ -43,7 +43,6 @@ export default function LifestyleGrid() {
 
   const current = weather.current || weather;
   
-  // 1. Wind Direction Logic
   const windDegrees = current?.wind?.deg ?? current?.wind_degree ?? 270;
   const getWindDirection = (deg: number) => {
     if (deg > 337.5 || deg <= 22.5) return "North Wind";
@@ -58,24 +57,19 @@ export default function LifestyleGrid() {
   };
   const windDirection = getWindDirection(windDegrees);
 
-  // 2. Status and Theme Colors
   let aqiValue = realAqi;
-  let aqiStatus = "Good";
   let statusColor = "text-[#0038A8]"; 
   let statusBg = "bg-[#0038A8]/10";
 
   if (aqiValue > 50) {
-    aqiStatus = "Moderate";
     statusColor = "text-[#FCD116]"; 
     statusBg = "bg-[#FCD116]/10";
   }
   if (aqiValue > 100) {
-    aqiStatus = "Unhealthy";
     statusColor = "text-[#CE1126]"; 
     statusBg = "bg-[#CE1126]/10";
   }
   if (isCrisisMode) {
-    aqiStatus = "Hazardous";
     aqiValue = aqiValue < 150 ? aqiValue + 100 : aqiValue;
     statusColor = "text-[#CE1126]";
     statusBg = "bg-[#CE1126]/10";
@@ -86,20 +80,18 @@ export default function LifestyleGrid() {
   return (
     <div className="flex flex-col justify-between h-full w-full relative z-10">
       
-      {/* Header Section */}
       <div className="flex justify-between items-start">
         <div className="flex flex-col z-10">
           <h2 className="text-xl lg:text-2xl font-bold tracking-tight text-foreground font-sans leading-tight">
             Air Quality
           </h2>
-          <p className="text-base text-muted-foreground capitalize font-sans mt-1">
+          <p className="text-sm text-muted-foreground capitalize font-sans mt-1">
             Particulate Matter: PM2.5 ({pm25} µg/m³)
           </p>
         </div>
         <Leaf className={`h-8 w-8 ${statusColor} opacity-50`} strokeWidth={2} />
       </div>
       
-      {/* Huge Value Section & Wind Direction */}
       <div className="flex flex-col items-start justify-center flex-1 w-full z-10 mt-4 mb-6">
         
         <div className="flex items-center gap-4">
@@ -107,7 +99,7 @@ export default function LifestyleGrid() {
             {aqiValue}
           </div>
           <div className={`px-4 py-2 rounded-xl ${statusBg} ${statusColor} text-sm font-bold tracking-widest uppercase shadow-sm border border-border/20 font-sans`}>
-            AQI - {aqiStatus}
+            AQI
           </div>
         </div>
 
@@ -118,29 +110,21 @@ export default function LifestyleGrid() {
 
       </div>
 
-      {/* Enclosed Progress Bar Card */}
       <div className="w-full mt-auto p-5 rounded-2xl bg-muted/30 border border-border/40 flex flex-col shadow-sm z-10">
         
-        {/* Risk Scale Headers */}
         <div className="flex justify-between items-end mb-3 font-sans">
-          <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Risk Scale</span>
-          <span className="text-xs font-bold text-foreground">{aqiValue} / 300+</span>
+          <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Good</span>
+          <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Hazardous</span>
         </div>
         
-        {/* The Smooth Gradient Gauge */}
-        <div className="relative h-3 w-full bg-gradient-to-r from-[#0038A8] via-[#FCD116] to-[#CE1126] rounded-full overflow-visible shadow-inner border border-border/20">
-          
+        <div 
+          className="relative h-2 w-full rounded-full overflow-visible shadow-inner border border-border/20"
+          style={{ background: 'linear-gradient(to right, rgba(245, 158, 11, 0.4), #f59e0b 50%, rgba(99, 102, 241, 0.8))' }}
+        >
           <div 
-            className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-5 h-5 bg-background border-[4px] border-foreground rounded-full shadow-md transition-all duration-1000 ease-out z-20"
-            style={{ left: `${aqiPercent}%` }}
+            className="absolute top-1/2 w-4 h-4 bg-background border-[3px] border-[#f59e0b] rounded-full shadow-md transition-all duration-1000 ease-out z-20"
+            style={{ left: `${aqiPercent}%`, transform: 'translate(-50%, -50%)' }}
           />
-
-        </div>
-
-        {/* Clean Scale Labels */}
-        <div className="flex justify-between text-[10px] font-bold uppercase tracking-widest text-muted-foreground mt-3 font-sans">
-          <span>Good</span>
-          <span>Hazard</span>
         </div>
 
       </div>

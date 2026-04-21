@@ -11,6 +11,7 @@ import ProForecast from "@/components/weather/ProForecast";
 import LifestyleGrid from "@/components/weather/LifestyleGrid";
 import TomorrowPreview from "@/components/weather/TomorrowPreview";
 import SolarProgression from "@/components/weather/SolarProgression";
+import UvIndexCard from "@/components/weather/UnIndexCard";
 import SearchBar from "@/components/search/SearchBar";
 import Suggestions from "@/components/search/Suggestions";
 import { motion, AnimatePresence } from "framer-motion";
@@ -168,14 +169,18 @@ export default function DashboardPage() {
             </section>
           </div>
 
-          <section className="w-full shrink-0 flex-1 flex flex-col lg:flex-row gap-3 lg:gap-6 mt-2">
-            <div className="flex-1 rounded-[2rem] bg-card border border-border/40 shadow-sm p-6 overflow-hidden flex flex-col">
+          <section className="w-full shrink-0 flex-1 flex flex-col lg:flex-row gap-6 lg:gap-10 mt-4">
+            
+            {/* Forecast Segment Removed from Card */}
+            <div className="flex-1 flex flex-col">
               <ForecastCarousel />
             </div>
 
+            {/* Tomorrow Preview Kept in Card */}
             <div className="w-full lg:w-[275px] shrink-0 rounded-[2rem] bg-card border border-border/40 shadow-sm p-6 flex flex-col justify-between items-center text-center hover:shadow-md transition-all">
               <TomorrowPreview />
             </div>
+            
           </section>
         </div>
       </div>
@@ -187,9 +192,14 @@ export default function DashboardPage() {
           <SolarProgression />
         </section>
 
+        {/* NEW UV INDEX CARD */}
+        <section className="w-full shrink-0">
+          <UvIndexCard />
+        </section>
+
         {/* 3-DAY WEATHER PREDICTION */}
         <section className="w-full flex-1 flex flex-col min-h-[300px]">
-          <h2 className="text-2xl font-extrabold text-foreground uppercase tracking-tight mb-6 shrink-0">
+          <h2 className="text-lg font-semibold tracking-tight text-foreground mb-4 shrink-0">
             Weather Prediction
           </h2>
           <div className="w-full flex-1 overflow-y-auto scrollbar-hide pb-4">

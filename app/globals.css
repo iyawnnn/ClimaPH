@@ -1,4 +1,3 @@
-@import url('https://fonts.googleapis.com/css2?family=Google+Sans:ital,opsz,wght@0,17..18,400..700;1,17..18,400..700&display=swap');
 @import "tailwindcss";
 @import "tw-animate-css";
 
@@ -8,10 +7,8 @@
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   
-  /* Updated Font Variable */
   --font-sans: "Google Sans", ui-sans-serif, system-ui, sans-serif;
-  
-  --font-mono: var(--font-geist-mono);
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   
   --color-ring: var(--ring);
   --color-input: var(--input);
@@ -48,7 +45,6 @@
 :root {
   --radius: 0.5rem;
   
-  /* Foundation */
   --background: #FFFFFF;
   --foreground: #0f172a; 
   --card: #FFFFFF;
@@ -56,15 +52,13 @@
   --popover: #FFFFFF;
   --popover-foreground: #0f172a;
   
-  /* Philippine Flag Colors */
-  --primary: #0032A0; /* PH Blue */
+  --primary: #0032A0;
   --primary-foreground: #FFFFFF;
-  --secondary: #FED141; /* PH Yellow */
+  --secondary: #FED141;
   --secondary-foreground: #0f172a;
-  --destructive: #BF0D3E; /* PH Red */
+  --destructive: #BF0D3E;
   --destructive-foreground: #FFFFFF;
   
-  /* UI Structure */
   --muted: #f1f5f9;
   --muted-foreground: #64748b;
   --accent: #f1f5f9;
@@ -73,7 +67,6 @@
   --input: #e2e8f0;
   --ring: #0032A0;
   
-  /* Chart Mapping */
   --chart-1: #0032A0;
   --chart-2: #FED141;
   --chart-3: #BF0D3E;
@@ -82,7 +75,6 @@
 }
 
 .dark {
-  /* Dark Mode Foundation */
   --background: #020617;
   --foreground: #f8fafc;
   --card: #0f172a;
@@ -90,7 +82,6 @@
   --popover: #0f172a;
   --popover-foreground: #f8fafc;
   
-  /* Philippine Flag Colors */
   --primary: #0032A0; 
   --primary-foreground: #FFFFFF;
   --secondary: #FED141; 
@@ -98,7 +89,6 @@
   --destructive: #BF0D3E; 
   --destructive-foreground: #FFFFFF;
   
-  /* UI Structure */
   --muted: #1e293b;
   --muted-foreground: #94a3b8;
   --accent: #1e293b;
@@ -107,7 +97,6 @@
   --input: #1e293b;
   --ring: #0032A0;
   
-  /* Chart Mapping */
   --chart-1: #0032A0;
   --chart-2: #FED141;
   --chart-3: #BF0D3E;
