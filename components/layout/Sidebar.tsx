@@ -23,9 +23,9 @@ export function Sidebar() {
   }, []);
 
   return (
-    <aside className="w-20 lg:w-24 h-full flex flex-col items-center py-8 shrink-0 z-50 bg-background/50">
+    <aside className="hidden lg:flex w-24 h-full flex-col items-center py-8 shrink-0 z-50 bg-background/50 border-r border-border/40">
       <div className="w-full flex justify-center mb-10 shrink-0">
-        <Link href="/" className="relative w-12 h-12 lg:w-14 lg:h-14 flex items-center justify-center transition-transform hover:scale-105">
+        <Link href="/" className="relative w-14 h-14 flex items-center justify-center transition-transform hover:scale-105">
           <Image src="/climaph-brand-logo.webp" alt="ClimaPH" fill className="object-contain" priority />
         </Link>
       </div>
@@ -34,20 +34,18 @@ export function Sidebar() {
         <NavIcon href="/" icon={LayoutGrid} label="Dashboard" active={pathname === "/"} />
         <NavIcon href="/map" icon={Compass} label="Global Radar" active={pathname === "/map"} />
         
-        {/* Radix UI Safety: Tooltip -> Dialog -> Trigger */}
         <Dialog>
           <Tooltip>
             <TooltipTrigger asChild>
               <div className="inline-block">
                 <DialogTrigger asChild>
-                  <button className="w-12 h-12 lg:w-14 lg:h-14 flex items-center justify-center rounded-2xl transition-all duration-200 text-muted-foreground hover:bg-muted hover:text-foreground outline-none">
+                  <button className="w-14 h-14 flex items-center justify-center rounded-2xl transition-all duration-200 text-muted-foreground hover:bg-muted hover:text-foreground outline-none">
                     <Pin className="w-5 h-5 stroke-[1.5]" />
                     <span className="sr-only">Anchored Nodes</span>
                   </button>
                 </DialogTrigger>
               </div>
             </TooltipTrigger>
-            {/* Inverted colors for maximum visibility */}
             <TooltipContent side="right" sideOffset={16} className="bg-foreground text-background border-none font-sans font-semibold tracking-wide shadow-xl">
               Anchored Nodes
             </TooltipContent>
@@ -86,7 +84,7 @@ export function Sidebar() {
           <TooltipTrigger asChild>
             <button
               onClick={toggleCrisisMode}
-              className={`w-12 h-12 lg:w-14 lg:h-14 flex items-center justify-center rounded-2xl transition-all duration-300 border outline-none ${
+              className={`w-14 h-14 flex items-center justify-center rounded-2xl transition-all duration-300 border outline-none ${
                 isCrisisMode 
                   ? "bg-[#CE1126] text-white border-[#CE1126] animate-pulse shadow-[0_0_15px_rgba(206,17,38,0.5)]" 
                   : "border-transparent text-muted-foreground hover:bg-muted hover:text-foreground"
@@ -105,7 +103,7 @@ export function Sidebar() {
           <TooltipTrigger asChild>
             <button
               onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-              className="w-12 h-12 lg:w-14 lg:h-14 flex items-center justify-center rounded-2xl text-muted-foreground hover:bg-muted hover:text-foreground transition-all duration-200 outline-none"
+              className="w-14 h-14 flex items-center justify-center rounded-2xl text-muted-foreground hover:bg-muted hover:text-foreground transition-all duration-200 outline-none"
             >
               <Sun className="w-5 h-5 stroke-[1.5] hidden dark:block" />
               <Moon className="w-5 h-5 stroke-[1.5] block dark:hidden" />
@@ -127,7 +125,7 @@ function NavIcon({ href, icon: Icon, label, active = false }: { href: string; ic
       <TooltipTrigger asChild>
         <Link 
           href={href} 
-          className={`w-12 h-12 lg:w-14 lg:h-14 flex items-center justify-center rounded-2xl transition-all duration-200 outline-none ${
+          className={`w-14 h-14 flex items-center justify-center rounded-2xl transition-all duration-200 outline-none ${
             active 
               ? "bg-[#0038A8] text-white shadow-md shadow-[#0038A8]/30" 
               : "text-muted-foreground hover:bg-muted hover:text-foreground"

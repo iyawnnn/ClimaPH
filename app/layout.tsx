@@ -1,19 +1,15 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Instrument_Sans } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/sonner";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Sidebar } from "@/components/layout/Sidebar";
+import SiteHeader from "@/components/layout/SiteHeader";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import "leaflet/dist/leaflet.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const instrumentSans = Instrument_Sans({
+  variable: "--font-instrument-sans",
   subsets: ["latin"],
 });
 
@@ -29,7 +25,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased h-screen w-full overflow-hidden bg-background text-foreground selection:bg-primary/30`}>
+      <body className={`${instrumentSans.variable} font-sans antialiased h-screen w-full overflow-hidden bg-background text-foreground selection:bg-primary/30`}>
         <ThemeProvider
           attribute="class"
           defaultTheme="system"
@@ -37,12 +33,15 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <TooltipProvider delayDuration={200}>
-            <div className="flex h-full w-full">
+            <div className="flex h-screen w-full overflow-hidden">
               <Sidebar />
               
-              <main className="flex-1 flex flex-col overflow-y-auto scroll-smooth z-10 will-change-scroll">
-                {children}
-              </main>
+              <div className="flex flex-1 flex-col min-w-0 h-full">
+                <SiteHeader />
+                <main className="flex-1 overflow-y-auto scroll-smooth z-10 will-change-scroll">
+                  {children}
+                </main>
+              </div>
             </div>
             <Toaster />
           </TooltipProvider>
