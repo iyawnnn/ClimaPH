@@ -13,11 +13,19 @@ import { Button } from "@/components/ui/button";
 import { ModeToggle } from "@/components/ModeToggle";
 import { toast } from "sonner";
 import { getFavorites } from "@/lib/favorites";
-import { Activity, LocateFixed, Star, X, LayoutGrid, Compass } from "lucide-react";
+import {
+  Activity,
+  LocateFixed,
+  Star,
+  X,
+  LayoutGrid,
+  Compass,
+} from "lucide-react";
 import type { Suggestion } from "@/types/types";
 
 export default function SiteHeader() {
-  const { isCrisisMode, toggleCrisisMode, setTargetLocation, targetLocation } = useAppStore();
+  const { isCrisisMode, toggleCrisisMode, setTargetLocation, targetLocation } =
+    useAppStore();
   const [isLocating, setIsLocating] = useState(false);
   const [favorites, setFavorites] = useState<Suggestion[]>([]);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -37,7 +45,8 @@ export default function SiteHeader() {
     };
   }, [isMenuOpen]);
 
-  const { input, suggestions, onChange, pickSuggestion, setSuggestions } = useSearch();
+  const { input, suggestions, onChange, pickSuggestion, setSuggestions } =
+    useSearch();
   const { getWeather, loadingWeather } = useWeather();
 
   const handleCurrentLocation = () => {
@@ -56,7 +65,7 @@ export default function SiteHeader() {
       () => {
         setIsLocating(false);
         toast.error("Coordinate retrieval failed.");
-      }
+      },
     );
   };
 
@@ -71,14 +80,13 @@ export default function SiteHeader() {
     <>
       <header className="sticky top-0 z-40 w-full border-b border-border/40 bg-background/80 backdrop-blur-xl supports-[backdrop-filter]:bg-background/60 shrink-0 lg:hidden">
         <div className="flex h-16 w-full items-center justify-between gap-4 px-4 md:px-6">
-          
           <div
             className="flex shrink-0 cursor-pointer items-center transition-transform hover:scale-105"
             onClick={() => window.location.reload()}
           >
             <Image
               src="/climaph-brand-logo.webp"
-              alt="ClimaPH Logo"
+              alt="ClimaPH Main Navigation Logo"
               width={150}
               height={36}
               className="h-8 w-auto object-contain md:h-9"
@@ -164,7 +172,7 @@ export default function SiteHeader() {
             <div className="mb-8 flex items-center justify-between">
               <Image
                 src="/climaph-brand-logo.webp"
-                alt="ClimaPH Logo"
+                alt="ClimaPH Mobile Menu Logo"
                 width={160}
                 height={40}
                 className="h-9 w-auto object-contain"
