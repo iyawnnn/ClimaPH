@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useWeather } from "@/hooks/useWeather";
 import { useAppStore } from "@/store/useAppStore";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -9,34 +9,33 @@ export default function SolarProgression() {
   const { weather, loadingWeather } = useWeather();
   const { targetLocation, unit } = useAppStore();
   const [mounted, setMounted] = useState(false);
-  const [progress, setProgress] = useState(0);
-  const [currentTime, setCurrentTime] = useState("");
-  const [sunsetDisplay, setSunsetDisplay] = useState("--:--");
-  const [sunriseDisplay, setSunriseDisplay] = useState("--:--");
+  const [now, setNow] = useState(Date.now());
 
+  // Single timer to drive the entire component's updates
   useEffect(() => {
     setMounted(true);
     const timer = setInterval(() => {
-      setCurrentTime(
-        new Date().toLocaleTimeString("en-US", {
-          hour: "numeric",
-          minute: "2-digit",
-        })
-      );
+      setNow(Date.now());
     }, 1000);
     return () => clearInterval(timer);
   }, []);
 
-  useEffect(() => {
-    if (!weather) return;
+  // Derive all time and progress calculations natively during render using useMemo
+  const { progress, sunriseDisplay, sunsetDisplay, currentTime } = useMemo(() => {
+    let sunriseTime = new Date().setHours(6, 0, 0, 0);
+    let sunsetTime = new Date().setHours(18, 0, 0, 0);
+    let srDisplay = "--:--";
+    let ssDisplay = "--:--";
 
-    const getTimestamps = () => {
-      const now = new Date().getTime();
-      let sunriseTime = new Date().setHours(6, 0, 0, 0); 
-      let sunsetTime = new Date().setHours(18, 0, 0, 0); 
-      let srDisplay = "06:00 AM";
-      let ssDisplay = "06:00 PM";
+    const formattedTime = new Date(now).toLocaleTimeString("en-US", {
+      hour: "numeric",
+      minute: "2-digit",
+    });
 
+    if (weather) {
+      srDisplay = "06:00 AM";
+      ssDisplay = "06:00 PM";
+      
       const parseTimeString = (timeStr: string) => {
         try {
           const match = timeStr.match(/(\d+):(\d+)\s*(AM|PM)/i);
@@ -47,11 +46,11 @@ export default function SolarProgression() {
             if (hrs === 12) hrs = isPM ? 12 : 0;
             else if (isPM) hrs += 12;
             
-            const d = new Date();
+            const d = new Date(now);
             d.setHours(hrs, mins, 0, 0);
             return d.getTime();
           }
-          return new Date(`${new Date().toDateString()} ${timeStr}`).getTime();
+          return new Date(`${new Date(now).toDateString()} ${timeStr}`).getTime();
         } catch {
           return null;
         }
@@ -74,15 +73,8 @@ export default function SolarProgression() {
         srDisplay = new Date(sunriseTime).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
         ssDisplay = new Date(sunsetTime).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
       }
+    }
 
-      setSunriseDisplay(srDisplay);
-      setSunsetDisplay(ssDisplay);
-
-      return { now, sunriseTime, sunsetTime };
-    };
-
-    const { now, sunriseTime, sunsetTime } = getTimestamps();
-    
     let currentProgress = 0;
     if (sunsetTime > sunriseTime) {
       currentProgress = (now - sunriseTime) / (sunsetTime - sunriseTime);
@@ -90,9 +82,14 @@ export default function SolarProgression() {
     
     currentProgress = Math.max(0, Math.min(1, currentProgress)); 
     if (isNaN(currentProgress)) currentProgress = 0;
-    
-    setProgress(currentProgress);
-  }, [weather]);
+
+    return {
+      progress: currentProgress,
+      sunriseDisplay: srDisplay,
+      sunsetDisplay: ssDisplay,
+      currentTime: formattedTime
+    };
+  }, [weather, now]);
 
   if (!mounted || loadingWeather) {
     return <Skeleton className="w-full h-64 rounded-3xl bg-transparent" />;
@@ -142,7 +139,6 @@ export default function SolarProgression() {
           preserveAspectRatio="xMidYMax meet"
         >
           <defs>
-            {/* Added gradientUnits to prevent the horizontal line bug */}
             <linearGradient id="sunGradient" x1="0%" y1="0%" x2="100%" y2="0%" gradientUnits="userSpaceOnUse">
               <stop offset="0%" stopColor="#f59e0b" stopOpacity="0.4" />
               <stop offset="50%" stopColor="#f59e0b" stopOpacity="1" />
@@ -150,7 +146,6 @@ export default function SolarProgression() {
             </linearGradient>
           </defs>
 
-          {/* Base Horizontal Line with 15px Overlap */}
           <line 
             x1={cx - radius - 15} 
             y1={cy} 
@@ -161,7 +156,6 @@ export default function SolarProgression() {
             strokeOpacity="0.4"
           />
 
-          {/* Dotted Background Arc */}
           <path
             d={arcPath}
             fill="none"
@@ -172,7 +166,6 @@ export default function SolarProgression() {
             className="text-border"
           />
 
-          {/* Solid Gradient Progress Arc */}
           <path
             d={arcPath}
             fill="none"
@@ -183,18 +176,15 @@ export default function SolarProgression() {
             strokeDashoffset={arcLength * (1 - progress)}
           />
 
-          {/* Intersecting Point Circles with Theme Colors */}
           <circle cx={cx - radius} cy={cy} r="4" fill="currentColor" className="text-primary dark:text-secondary transition-colors duration-300" />
           <circle cx={cx + radius} cy={cy} r="4" fill="currentColor" className="text-primary dark:text-secondary transition-colors duration-300" />
 
-          {/* Instant Sun Group */}
           <g transform={`translate(${sunX}, ${sunY})`}>
             <circle r="6" fill="#f59e0b" />
             <circle r="12" fill="none" stroke="#f59e0b" strokeWidth="2" strokeOpacity="0.4" />
             <circle r="18" fill="none" stroke="#f59e0b" strokeWidth="1" strokeOpacity="0.1" />
           </g>
 
-          {/* Lifted Center Text */}
           <text
             x={cx}
             y={cy - 55}
