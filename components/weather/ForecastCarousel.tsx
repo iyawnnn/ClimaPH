@@ -2,7 +2,15 @@
 
 import { useWeather } from "@/hooks/useWeather";
 import { useAppStore } from "@/store/useAppStore";
-import { CartesianGrid, Line, LineChart, XAxis, LabelList, YAxis, ReferenceLine } from "recharts";
+import {
+  CartesianGrid,
+  Line,
+  LineChart,
+  XAxis,
+  LabelList,
+  YAxis,
+  ReferenceLine,
+} from "recharts";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Cloud, CloudRain, Sun, CloudLightning, Moon } from "lucide-react";
 import {
@@ -35,7 +43,7 @@ export default function ForecastCarousel() {
   for (const item of fiveDayForecast) {
     const date = new Date(item.dt * 1000);
     const hour = date.getHours();
-    
+
     let period = "";
     if (hour >= 5 && hour < 12) period = "Morning";
     else if (hour >= 12 && hour < 17) period = "Afternoon";
@@ -44,14 +52,15 @@ export default function ForecastCarousel() {
 
     if (!periodMap.has(period)) {
       const rawTemp = item.main.temp;
-      const displayTemp = unit === "C" ? Math.round(rawTemp) : Math.round((rawTemp * 9) / 5 + 32);
+      const displayTemp =
+        unit === "C" ? Math.round(rawTemp) : Math.round((rawTemp * 9) / 5 + 32);
 
       periodMap.set(period, {
         period,
         temp: displayTemp,
         displayLabel: `${displayTemp}°`,
         description: item.weather?.[0]?.description || "clear",
-        isGhost: false
+        isGhost: false,
       });
     }
     if (periodMap.size === 4) break;
@@ -60,15 +69,15 @@ export default function ForecastCarousel() {
   // 3. Sort the data into the defined daily order
   const realData = dailyOrder.map((p, index) => ({
     ...periodMap.get(p),
-    x: index
+    x: index,
   }));
 
   // 4. Create ghost points for the exceeding line effect
-  const offset = 0.2; 
+  const offset = 0.2;
   const chartData = [
     { x: -offset, temp: realData[0]?.temp, isGhost: true },
     ...realData,
-    { x: 3 + offset, temp: realData[realData.length - 1]?.temp, isGhost: true }
+    { x: 3 + offset, temp: realData[realData.length - 1]?.temp, isGhost: true },
   ];
 
   const CustomIconLabel = (props: any) => {
@@ -103,8 +112,20 @@ export default function ForecastCarousel() {
 
     return (
       <g key={`icon-group-${index}`} transform={`translate(${x},${y})`}>
-        <circle cx={0} cy={-50} r={22} className={`${bgClass} transition-colors duration-300`} />
-        <Icon x={-14} y={-64} width={28} height={28} className={`${colorClass} drop-shadow-sm`} strokeWidth={2.5} />
+        <circle
+          cx={0}
+          cy={-50}
+          r={22}
+          className={`${bgClass} transition-colors duration-300`}
+        />
+        <Icon
+          x={-14}
+          y={-64}
+          width={28}
+          height={28}
+          className={`${colorClass} drop-shadow-sm`}
+          strokeWidth={2.5}
+        />
       </g>
     );
   };
@@ -120,16 +141,34 @@ export default function ForecastCarousel() {
           <LineChart
             accessibilityLayer
             data={chartData}
-            overflow="visible" 
+            style={{ overflow: "visible" }}
             margin={{ top: 0, left: 10, right: 10, bottom: 0 }}
           >
-            <YAxis hide domain={['dataMin - 15', 'dataMax + 15']} />
+            <YAxis hide domain={["dataMin - 15", "dataMax + 15"]} />
             <CartesianGrid vertical={false} horizontal={false} />
 
-            <ReferenceLine x={0.5} stroke="var(--muted-foreground)" strokeOpacity={0.8} strokeWidth={1.5} strokeDasharray="4 4" />
-            <ReferenceLine x={1.5} stroke="var(--muted-foreground)" strokeOpacity={0.8} strokeWidth={1.5} strokeDasharray="4 4" />
-            <ReferenceLine x={2.5} stroke="var(--muted-foreground)" strokeOpacity={0.8} strokeWidth={1.5} strokeDasharray="4 4" />
-            
+            <ReferenceLine
+              x={0.5}
+              stroke="var(--muted-foreground)"
+              strokeOpacity={0.8}
+              strokeWidth={1.5}
+              strokeDasharray="4 4"
+            />
+            <ReferenceLine
+              x={1.5}
+              stroke="var(--muted-foreground)"
+              strokeOpacity={0.8}
+              strokeWidth={1.5}
+              strokeDasharray="4 4"
+            />
+            <ReferenceLine
+              x={2.5}
+              stroke="var(--muted-foreground)"
+              strokeOpacity={0.8}
+              strokeWidth={1.5}
+              strokeDasharray="4 4"
+            />
+
             <XAxis
               type="number"
               dataKey="x"
@@ -137,29 +176,49 @@ export default function ForecastCarousel() {
               tickLine={false}
               axisLine={false}
               interval={0}
-              height={70} 
+              height={70}
               ticks={[0, 1, 2, 3]}
-              tick={({ x, y, payload }) => {
+              tick={({ x, y, payload }: any) => {
                 const dataPoint = realData[payload.value];
-                if (!dataPoint) return null;
+
+                // Return an empty SVG element instead of null to satisfy TypeScript
+                if (!dataPoint) return <g />;
+
                 return (
                   <g transform={`translate(${x},${y})`}>
-                    <text x={0} y={20} textAnchor="middle" className="fill-foreground text-xl md:text-2xl font-bold tracking-tighter">
+                    <text
+                      x={0}
+                      y={20}
+                      textAnchor="middle"
+                      className="fill-foreground text-xl md:text-2xl font-bold tracking-tighter"
+                    >
                       {dataPoint.displayLabel}
                     </text>
-                    <text x={0} y={42} textAnchor="middle" dominantBaseline="hanging" className="fill-muted-foreground text-[8px] md:text-[11px] font-bold uppercase tracking-widest">
+                    <text
+                      x={0}
+                      y={42}
+                      textAnchor="middle"
+                      dominantBaseline="hanging"
+                      className="fill-muted-foreground text-[8px] md:text-[11px] font-bold uppercase tracking-widest"
+                    >
                       {dataPoint.period}
                     </text>
                   </g>
                 );
               }}
             />
-            
+
             <ChartTooltip
               cursor={false}
-              content={<ChartTooltipContent indicator="line" nameKey="temp" hideLabel />}
+              content={
+                <ChartTooltipContent
+                  indicator="line"
+                  nameKey="temp"
+                  hideLabel
+                />
+              }
             />
-            
+
             <Line
               dataKey="temp"
               type="natural"
@@ -169,14 +228,14 @@ export default function ForecastCarousel() {
                 const { cx, cy, payload, index } = props;
                 if (payload.isGhost) return <g key={`ghost-dot-${index}`} />;
                 return (
-                  <circle 
-                    key={`dot-${index}`} 
-                    cx={cx} 
-                    cy={cy} 
-                    r={6} 
-                    fill="var(--background)" 
-                    stroke="var(--color-temp)" 
-                    strokeWidth={3} 
+                  <circle
+                    key={`dot-${index}`}
+                    cx={cx}
+                    cy={cy}
+                    r={6}
+                    fill="var(--background)"
+                    stroke="var(--color-temp)"
+                    strokeWidth={3}
                   />
                 );
               }}
@@ -184,14 +243,14 @@ export default function ForecastCarousel() {
                 const { cx, cy, payload, index } = props;
                 if (payload.isGhost) return <g key={`ghost-active-${index}`} />;
                 return (
-                  <circle 
-                    key={`active-dot-${index}`} 
-                    cx={cx} 
-                    cy={cy} 
-                    r={8} 
-                    fill="var(--color-temp)" 
-                    stroke="var(--background)" 
-                    strokeWidth={3} 
+                  <circle
+                    key={`active-dot-${index}`}
+                    cx={cx}
+                    cy={cy}
+                    r={8}
+                    fill="var(--color-temp)"
+                    stroke="var(--background)"
+                    strokeWidth={3}
                   />
                 );
               }}

@@ -1,5 +1,16 @@
 import { create } from "zustand";
-import { AppState } from "@/types/types"; // Adjust path if necessary
+import type { Suggestion } from "@/types/types";
+
+export interface AppState {
+  targetLocation: Suggestion | null;
+  isCrisisMode: boolean;
+  unit: "C" | "F";
+  mapLayer: string;
+  setTargetLocation: (location: Suggestion | null) => void;
+  toggleCrisisMode: () => void;
+  setUnit: (unit: "C" | "F") => void;
+  setMapLayer: (layer: string) => void;
+}
 
 export const useAppStore = create<AppState>((set) => ({
   targetLocation: { 

@@ -68,7 +68,7 @@ export default function DashboardPage() {
 
   const getWeatherGreeting = () => {
     if (loadingWeather || !weather)
-      return "Magandang araw! Kinukuha ang impormasyon...";
+      return { line1: "Magandang araw!", line2: "Kinukuha ang impormasyon..." };
     const desc = (
       weather.current?.condition?.text ||
       weather.current?.weather?.[0]?.description ||
@@ -76,15 +76,27 @@ export default function DashboardPage() {
     ).toLowerCase();
 
     if (desc.includes("rain") || desc.includes("drizzle"))
-      return "Maulan ngayon! Wag kalimutang magdala ng payong.";
+      return {
+        line1: "Maulan ngayon!",
+        line2: "Wag kalimutang magdala ng payong.",
+      };
     if (desc.includes("sun") || desc.includes("clear"))
-      return "Mainit ang sikat ng araw! Uminom ng maraming tubig.";
+      return {
+        line1: "Mainit ang sikat ng araw!",
+        line2: "Uminom ng maraming tubig.",
+      };
     if (desc.includes("cloud"))
-      return "Maulap ngayon. Magandang araw para mamasyal!";
+      return {
+        line1: "Maulap ngayon.",
+        line2: "Magandang araw para mamasyal!",
+      };
     if (desc.includes("thunder") || desc.includes("storm"))
-      return "May badya ng kulog at kidlat. Ingat po palagi!";
+      return {
+        line1: "May badya ng kulog at kidlat.",
+        line2: "Ingat po palagi!",
+      };
 
-    return "Magandang araw! Ingat sa byahe mo ngayon.";
+    return { line1: "Magandang araw!", line2: "Ingat sa byahe mo ngayon." };
   };
 
   return (
@@ -92,32 +104,30 @@ export default function DashboardPage() {
       {/* Main Left Content Area */}
       <div className="flex-1 flex flex-col min-w-0 bg-background p-4 md:p-6 lg:p-8 xl:p-10">
         {/* Header Section */}
-        <header className="w-full flex flex-col lg:flex-row lg:items-center justify-between gap-4 md:gap-6 shrink-0 mb-6 md:mb-8 xl:mb-10">
+        <header className="w-full flex flex-col lg:flex-row lg:items-center justify-between gap-4 md:gap-6 shrink-0 mb-6 md:mb-8 xl:mb-10 mt-2 lg:mt-0">
           <div className="flex items-center gap-3 md:gap-4">
-            <div className="relative w-10 h-10 md:w-12 md:h-12 rounded-full overflow-hidden shrink-0 shadow-sm border border-border/40">
+            <div className="relative w-12 h-12 md:w-14 md:h-14 rounded-full overflow-hidden shrink-0 shadow-sm border border-border/40">
               <Image
                 src="/placeholder-avatar.webp"
                 alt="Profile picture of the user"
                 fill
-                sizes="(max-width: 768px) 40px, 48px"
+                sizes="(max-width: 768px) 48px, 56px"
                 className="object-cover"
                 priority
               />
             </div>
-            <div>
-              <h1 className="text-lg md:text-xl font-bold tracking-tight text-foreground">
-                {getWeatherGreeting()}
+            <div className="flex flex-col justify-center">
+              <h1 className="text-xl md:text-2xl lg:text-3xl font-extrabold tracking-tight text-foreground leading-tight">
+                {getWeatherGreeting().line1}
               </h1>
-              <p className="text-[10px] md:text-xs text-muted-foreground mt-0.5 uppercase tracking-wider">
-                Telemetry for{" "}
-                <span className="text-foreground font-semibold">
-                  {targetLocation?.display || "Unknown"}
-                </span>
+              <p className="text-sm md:text-base text-muted-foreground font-medium mt-0.5">
+                {getWeatherGreeting().line2}
               </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-2 md:gap-3 w-full lg:max-w-md z-50 h-10 md:h-12">
+          {/* Search container - Hidden on mobile, visible on desktop (lg) */}
+          <div className="hidden lg:flex items-center gap-2 md:gap-3 w-full lg:max-w-md z-50 h-10 md:h-12">
             <div className="relative flex-1 h-full">
               <div className="h-full bg-card border border-border/60 shadow-sm rounded-xl overflow-hidden transition-all focus-within:ring-2 focus-within:ring-[#0038A8]/20">
                 <SearchBar
@@ -137,7 +147,8 @@ export default function DashboardPage() {
                     transition={{ duration: 0.15 }}
                     className="absolute left-0 right-0 top-[calc(100%+8px)] shadow-xl z-50"
                   >
-                    <div className="overflow-hidden rounded-xl border border-border/30 bg-background/95 backdrop-blur-md">
+                    {/* The overflow-hidden here is critical to crop any escaping child elements */}
+                    <div className="overflow-hidden rounded-xl border border-border/40 bg-background/95 backdrop-blur-md">
                       <Suggestions
                         suggestions={suggestions}
                         pickSuggestion={handleSuggestionClick}
@@ -150,7 +161,7 @@ export default function DashboardPage() {
             <button
               onClick={handleCurrentLocation}
               disabled={isLocating}
-              className="h-full aspect-square flex items-center justify-center rounded-xl bg-[#0038A8] text-white hover:bg-[#002776] transition-all duration-200 shadow-md shrink-0"
+              className="h-full aspect-square flex items-center justify-center rounded-full bg-[#0038A8] text-white hover:bg-[#002776] transition-all duration-200 shadow-md shrink-0"
               aria-label="Use current location"
             >
               <LocateFixed
@@ -161,18 +172,18 @@ export default function DashboardPage() {
         </header>
 
         {/* Primary Dashboard Grid */}
-        <div className="flex flex-col gap-4 md:gap-6 lg:gap-8 flex-1">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6 w-full shrink-0 items-stretch">
-            <section className="w-full rounded-[1.5rem] md:rounded-[2rem] bg-card border border-border/40 shadow-sm p-4 md:p-6 lg:p-8 min-h-[300px] md:min-h-[400px] flex flex-col relative overflow-hidden transition-all hover:shadow-md">
+        <div className="flex flex-col gap-4 md:gap-6 lg:gap-8 w-full">
+          <div className="flex flex-col lg:flex-row gap-4 md:gap-6 w-full shrink-0 items-stretch">
+            <section className="flex-1 min-w-0 rounded-[1.5rem] md:rounded-[2rem] bg-card border border-border/40 shadow-sm p-4 md:p-6 lg:p-8 lg:min-h-[380px] flex flex-col relative overflow-hidden transition-all hover:shadow-md">
               <CurrentWeather />
             </section>
 
-            <section className="w-full rounded-[1.5rem] md:rounded-[2rem] bg-card border border-border/40 shadow-sm p-4 md:p-6 lg:p-8 min-h-[300px] md:min-h-[400px] flex flex-col relative overflow-hidden transition-all hover:shadow-md">
+            <section className="flex-1 min-w-0 rounded-[1.5rem] md:rounded-[2rem] bg-card border border-border/40 shadow-sm p-4 md:p-6 lg:p-8 lg:min-h-[380px] flex flex-col relative overflow-hidden transition-all hover:shadow-md">
               <LifestyleGrid />
             </section>
           </div>
 
-          <section className="w-full shrink-0 flex-1 flex flex-col md:flex-row gap-4 md:gap-6 lg:gap-10 mt-2 md:mt-4">
+          <section className="w-full shrink-0 flex flex-col md:flex-row gap-4 md:gap-6 lg:gap-10 mt-2 md:mt-4">
             <div className="flex-1 flex flex-col min-w-0">
               <ForecastCarousel />
             </div>

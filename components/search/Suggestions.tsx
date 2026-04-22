@@ -1,5 +1,3 @@
-"use client";
-
 import { MapPin } from "lucide-react";
 import type { Suggestion } from "@/types/types";
 
@@ -12,27 +10,38 @@ export default function Suggestions({ suggestions, pickSuggestion }: Suggestions
   if (!suggestions || suggestions.length === 0) return null;
 
   return (
-    <ul className="flex max-h-[320px] flex-col overflow-y-auto p-2 scrollbar-hide w-full">
-      {suggestions.map((suggestion, index) => (
-        <li key={`${suggestion.lat}-${suggestion.lon}-${index}`} className="w-full">
-          <button
-            onClick={() => pickSuggestion(suggestion)}
-            className="flex w-full items-center gap-3 rounded-lg px-3 py-3 text-left transition-colors hover:bg-muted/50 focus-visible:bg-muted/50 focus-visible:outline-none"
-          >
-            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-muted/30">
-              <MapPin className="h-4 w-4 text-muted-foreground" strokeWidth={2} />
-            </div>
-            <div className="flex flex-col min-w-0">
-              <span className="text-sm font-medium text-foreground truncate w-full">
-                {suggestion.name || suggestion.display.split(',')[0]}
-              </span>
-              <span className="text-xs text-muted-foreground truncate w-full mt-0.5">
-                {suggestion.display}
-              </span>
-            </div>
-          </button>
-        </li>
-      ))}
+    <ul className="flex max-h-[300px] flex-col overflow-y-auto p-1.5 scrollbar-hide w-full">
+      {suggestions.map((suggestion, index) => {
+        const safeLon = suggestion.lon ?? (suggestion as any).lng ?? (suggestion as any).longitude ?? index;
+        
+        // Split the string for better typographic hierarchy (e.g., "Manila" / "Metro Manila, Philippines")
+        const displayParts = (suggestion.display || "Unknown Location").split(',');
+        const primaryText = displayParts[0].trim();
+        const secondaryText = displayParts.slice(1).join(',').trim();
+
+        return (
+          <li key={`${suggestion.lat}-${safeLon}-${index}`} className="w-full">
+            <button
+              onClick={() => pickSuggestion(suggestion)}
+              className="group flex w-full items-center gap-3 rounded-md px-3 py-2.5 text-left transition-all duration-200 hover:bg-muted/60 focus-visible:bg-muted/60 focus-visible:outline-none"
+            >
+              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-muted/40 transition-colors group-hover:bg-background shadow-sm">
+                <MapPin className="h-4 w-4 text-muted-foreground transition-colors group-hover:text-foreground" />
+              </div>
+              <div className="flex flex-col min-w-0 overflow-hidden">
+                <span className="text-sm font-semibold text-foreground truncate">
+                  {primaryText}
+                </span>
+                {secondaryText && (
+                  <span className="text-xs text-muted-foreground truncate mt-0.5">
+                    {secondaryText}
+                  </span>
+                )}
+              </div>
+            </button>
+          </li>
+        );
+      })}
     </ul>
   );
 }
