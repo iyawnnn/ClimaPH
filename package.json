@@ -53,12 +53,13 @@
     "zustand": "^5.0.12"
   },
   "devDependencies": {
+    "@next/bundle-analyzer": "^16.2.4",
     "@tailwindcss/postcss": "^4",
     "@types/leaflet": "^1.9.21",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
-    "baseline-browser-mapping": "^2.8.32",
+    "baseline-browser-mapping": "^2.10.21",
     "eslint": "^9",
     "eslint-config-next": "16.0.5",
     "eslint-config-prettier": "^10.1.8",

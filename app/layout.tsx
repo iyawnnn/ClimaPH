@@ -15,10 +15,29 @@ const instrumentSans = Instrument_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "ClimaPH",
-  description: "High-performance environmental telemetry and weather dashboard for the Philippines, featuring real-time localized emergency alerts and atmospheric monitoring.",
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"),
+  title: {
+    default: "ClimaPH",
+    template: "%s | ClimaPH",
+  },
+  description: "High-performance environmental telemetry and weather dashboard for the Philippines. Features real-time localized emergency alerts and atmospheric monitoring.",
+  keywords: ["weather", "Philippines", "telemetry", "emergency alerts", "ClimaPH", "radar"],
+  openGraph: {
+    title: "ClimaPH",
+    description: "High-performance environmental telemetry and weather dashboard for the Philippines.",
+    url: "/",
+    siteName: "ClimaPH",
+    locale: "en_PH",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "ClimaPH",
+    description: "High-performance environmental telemetry and weather dashboard for the Philippines.",
+  },
   icons: {
     icon: "/icon.svg",
+    apple: "/apple-touch-icon.png",
   },
   applicationName: "ClimaPH",
   authors: [
