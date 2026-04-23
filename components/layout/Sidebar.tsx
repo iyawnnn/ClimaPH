@@ -6,6 +6,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useTheme } from "next-themes";
 import { useAppStore } from "@/store/useAppStore";
+import { useWeather } from "@/hooks/useWeather";
 import {
   LayoutGrid,
   Compass,
@@ -14,6 +15,7 @@ import {
   Moon,
   ShieldAlert,
   Star,
+  LocateFixed,
 } from "lucide-react";
 import {
   Dialog,
@@ -26,6 +28,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { toast } from "sonner";
 import { getFavorites } from "@/lib/favorites";
 import type { Suggestion } from "@/types/types";
 
@@ -33,11 +36,35 @@ export function Sidebar() {
   const pathname = usePathname();
   const { theme, setTheme } = useTheme();
   const { isCrisisMode, toggleCrisisMode, setTargetLocation } = useAppStore();
+  const { getWeather } = useWeather();
   const [favorites, setFavorites] = useState<Suggestion[]>([]);
+  const [isLocating, setIsLocating] = useState(false);
 
   useEffect(() => {
     setFavorites(getFavorites());
   }, []);
+
+  const handleGeolocationUpdate = () => {
+    if (!navigator.geolocation) {
+      toast.error("Geolocation services are unavailable.");
+      return;
+    }
+    
+    setIsLocating(true);
+    toast.info("Acquiring satellite lock...");
+    
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        getWeather(pos.coords.latitude, pos.coords.longitude);
+        setIsLocating(false);
+        toast.success("Node recalibrated to current coordinates.");
+      },
+      () => {
+        setIsLocating(false);
+        toast.error("Coordinate retrieval failed.");
+      }
+    );
+  };
 
   return (
     <aside className="hidden lg:flex w-24 h-full flex-col items-center py-8 shrink-0 z-50 bg-background/50 border-r border-border/40">
@@ -125,6 +152,26 @@ export function Sidebar() {
       </nav>
 
       <div className="mt-auto flex flex-col gap-4 w-full items-center shrink-0 pt-6">
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <button
+              onClick={handleGeolocationUpdate}
+              disabled={isLocating}
+              className="w-14 h-14 flex items-center justify-center rounded-2xl text-muted-foreground hover:bg-muted hover:text-foreground transition-all duration-200 outline-none disabled:opacity-50"
+            >
+              <LocateFixed className={`w-5 h-5 stroke-[1.5] ${isLocating ? "animate-pulse text-primary" : ""}`} />
+              <span className="sr-only">Sync GPS Coordinates</span>
+            </button>
+          </TooltipTrigger>
+          <TooltipContent
+            side="right"
+            sideOffset={16}
+            className="bg-foreground text-background border-none font-sans font-semibold tracking-wide shadow-xl"
+          >
+            Sync Node Coordinates
+          </TooltipContent>
+        </Tooltip>
+
         <Tooltip>
           <TooltipTrigger asChild>
             <button

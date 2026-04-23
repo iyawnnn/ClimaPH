@@ -33,29 +33,30 @@ export default function WelcomeState() {
       toast.error("Geolocation services are unavailable.");
       return;
     }
-    
+
     setIsLocating(true);
     toast.info("Acquiring satellite lock...");
-    
+
     navigator.geolocation.getCurrentPosition(
       (pos) => {
-        // This will trigger the useWeather hook to fetch data, 
+        // This will trigger the useWeather hook to fetch data,
         // which then triggers the useEffect above to complete onboarding
         getWeather(pos.coords.latitude, pos.coords.longitude);
       },
       (err) => {
         setIsLocating(false);
-        toast.error("Coordinate retrieval failed. Please allow location access.");
-      }
+        toast.error(
+          "Coordinate retrieval failed. Please allow location access.",
+        );
+      },
     );
   };
 
   const handleManualSkip = () => {
-    // Default fallback if they refuse location tracking
     setTargetLocation({
-      display: "San Fernando, Pampanga",
-      lat: 15.0286,
-      lon: 120.6925,
+      display: process.env.NEXT_PUBLIC_DEFAULT_LOCATION_NAME || "Metro Manila",
+      lat: Number(process.env.NEXT_PUBLIC_DEFAULT_LATITUDE) || 14.5995,
+      lon: Number(process.env.NEXT_PUBLIC_DEFAULT_LONGITUDE) || 120.9842,
     });
     completeOnboarding();
   };
@@ -72,8 +73,12 @@ export default function WelcomeState() {
             className="flex w-full max-w-md flex-col items-center gap-8 px-6 text-center"
           >
             <div className="space-y-2">
-              <h1 className="text-3xl font-bold tracking-tight text-foreground">Interface Preference</h1>
-              <p className="text-muted-foreground">Select your preferred visual environment.</p>
+              <h1 className="text-3xl font-bold tracking-tight text-foreground">
+                Interface Preference
+              </h1>
+              <p className="text-muted-foreground">
+                Select your preferred visual environment.
+              </p>
             </div>
 
             <div className="grid w-full grid-cols-3 gap-4">
@@ -103,8 +108,8 @@ export default function WelcomeState() {
               </Button>
             </div>
 
-            <Button 
-              className="mt-4 w-full rounded-xl py-6 text-lg font-semibold" 
+            <Button
+              className="mt-4 w-full rounded-xl py-6 text-lg font-semibold"
               onClick={() => setStep(2)}
             >
               Continue
@@ -121,8 +126,12 @@ export default function WelcomeState() {
             className="flex w-full max-w-md flex-col items-center gap-8 px-6 text-center"
           >
             <div className="space-y-2">
-              <h1 className="text-3xl font-bold tracking-tight text-foreground">Establish Node</h1>
-              <p className="text-muted-foreground">Grant access to determine your local atmospheric conditions.</p>
+              <h1 className="text-3xl font-bold tracking-tight text-foreground">
+                Establish Node
+              </h1>
+              <p className="text-muted-foreground">
+                Grant access to determine your local atmospheric conditions.
+              </p>
             </div>
 
             <Button
@@ -134,7 +143,11 @@ export default function WelcomeState() {
                 <span className="flex items-center gap-2">
                   <motion.div
                     animate={{ rotate: 360 }}
-                    transition={{ repeat: Infinity, duration: 1, ease: "linear" }}
+                    transition={{
+                      repeat: Infinity,
+                      duration: 1,
+                      ease: "linear",
+                    }}
                   >
                     <LocateFixed className="h-5 w-5" />
                   </motion.div>
