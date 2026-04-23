@@ -1,4 +1,5 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
+import { Instrument_Sans } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/sonner";
 import { ThemeProvider } from "@/components/theme-provider";
@@ -7,9 +8,32 @@ import SiteHeader from "@/components/layout/SiteHeader";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import "leaflet/dist/leaflet.css";
 
+const instrumentSans = Instrument_Sans({
+  subsets: ["latin"],
+  variable: "--font-instrument-sans",
+  display: "swap",
+});
+
 export const metadata: Metadata = {
   title: "ClimaPH",
-  description: "High-performance environmental telemetry dashboard.",
+  description: "High-performance environmental telemetry and weather dashboard for the Philippines, featuring real-time localized emergency alerts and atmospheric monitoring.",
+  icons: {
+    icon: "/icon.svg",
+  },
+  applicationName: "ClimaPH",
+  authors: [
+    { 
+      name: "Ian Macabulos", 
+      url: "https://www.iansebastian.dev/"
+    }
+  ],
+};
+
+export const viewport: Viewport = {
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
+    { media: "(prefers-color-scheme: dark)", color: "#09090b" },
+  ],
 };
 
 export default function RootLayout({
@@ -18,15 +42,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link 
-          href="https://fonts.googleapis.com/css2?family=Google+Sans:ital,opsz,wght@0,17..18,400..700;1,17..18,400..700&display=swap" 
-          rel="stylesheet" 
-        />
-      </head>
+    <html lang="en" suppressHydrationWarning className={instrumentSans.variable}>
       <body className="font-sans antialiased h-screen w-full overflow-hidden bg-background text-foreground selection:bg-primary/30">
         <ThemeProvider
           attribute="class"
