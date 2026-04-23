@@ -8,7 +8,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { calculateAQI } from "@/lib/weather-utils";
 
 export default function LifestyleGrid() {
-  const { isCrisisMode, targetLocation } = useAppStore();
+  const { targetLocation } = useAppStore();
   const { weather, loadingWeather } = useWeather();
   const [realAqi, setRealAqi] = useState<number | null>(null);
   const [pm25, setPm25] = useState<number | null>(null);
@@ -64,7 +64,7 @@ export default function LifestyleGrid() {
   };
   const windDirection = getWindDirection(windDegrees);
 
-  let aqiValue = realAqi;
+  const aqiValue = realAqi;
   let statusColor = "text-[#0038A8]";
   let statusBg = "bg-[#0038A8]/10";
 
@@ -73,11 +73,6 @@ export default function LifestyleGrid() {
     statusBg = "bg-[#FCD116]/10";
   }
   if (aqiValue > 100) {
-    statusColor = "text-[#CE1126]";
-    statusBg = "bg-[#CE1126]/10";
-  }
-  if (isCrisisMode) {
-    aqiValue = aqiValue < 150 ? aqiValue + 100 : aqiValue;
     statusColor = "text-[#CE1126]";
     statusBg = "bg-[#CE1126]/10";
   }

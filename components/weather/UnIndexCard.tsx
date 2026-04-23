@@ -1,43 +1,46 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import Image from "next/image";
+import useSWR from "swr";
 import { useAppStore } from "@/store/useAppStore";
 import { Skeleton } from "@/components/ui/skeleton";
 
+const fetcher = async (url: string) => {
+  const res = await fetch(url);
+  if (!res.ok) throw new Error("Failed to fetch UV data");
+  return res.json();
+};
+
 export default function UvIndexCard() {
   const { targetLocation } = useAppStore();
-  const [uvData, setUvData] = useState<{ index: number; isDay: number } | null>(null);
 
-  useEffect(() => {
-    if (!targetLocation) return;
+  const lat = (targetLocation as any)?.lat;
+  const lon = (targetLocation as any)?.lon ?? (targetLocation as any)?.lng ?? (targetLocation as any)?.longitude;
 
-    const fetchUV = async () => {
-      try {
-        const safeLon = (targetLocation as any).lon ?? (targetLocation as any).lng ?? (targetLocation as any).longitude;
-        if (safeLon === undefined) return;
+  const isValidLocation = lat !== undefined && lon !== undefined;
 
-        const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${targetLocation.lat}&longitude=${safeLon}&current=uv_index,is_day`);
-        if (!res.ok) throw new Error("Failed to fetch UV data");
-        const data = await res.json();
-        
-        setUvData({
-          index: Math.round(data.current.uv_index),
-          isDay: data.current.is_day
-        });
-      } catch (error) {
-        console.error("UV fetch error:", error);
-      }
-    };
+  const { data, error, isLoading } = useSWR(
+    isValidLocation 
+      ? `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=uv_index,is_day` 
+      : null,
+    fetcher,
+    { revalidateOnFocus: false }
+  );
 
-    fetchUV();
-  }, [targetLocation]);
-
-  if (uvData === null) {
+  if (isLoading || !isValidLocation) {
     return <Skeleton className="w-full h-[100px] rounded-3xl bg-primary/20" />;
   }
 
-  const { index: uvIndex, isDay } = uvData;
+  if (error || !data) {
+    return (
+      <div className="w-full h-[100px] rounded-3xl bg-destructive/10 text-destructive flex items-center justify-center p-6 text-sm">
+        UV data unavailable.
+      </div>
+    );
+  }
+
+  const uvIndex = Math.round(data.current.uv_index);
+  const isDay = data.current.is_day;
 
   let status = "Low";
   let message = "Low risk of UV rays. Enjoy the outdoors.";
@@ -70,7 +73,7 @@ export default function UvIndexCard() {
       <div className="shrink-0 flex items-center justify-center bg-primary-foreground/10 rounded-full p-3">
         <Image 
           src="/sun-uv-symbol.webp" 
-          alt="Sun UV Symbol" 
+          alt="Current ultraviolet index status symbol" 
           width={44} 
           height={44} 
           className="object-contain drop-shadow-md"

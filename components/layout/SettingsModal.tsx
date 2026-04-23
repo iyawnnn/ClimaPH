@@ -14,11 +14,11 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Moon, Sun, Monitor, LocateFixed, Activity, Settings as SettingsIcon } from "lucide-react";
+import { Moon, Sun, Monitor, LocateFixed, Settings as SettingsIcon } from "lucide-react";
 
 export default function SettingsModal() {
   const { setTheme, theme } = useTheme();
-  const { isCrisisMode, toggleCrisisMode, setTargetLocation } = useAppStore();
+  const { setTargetLocation } = useAppStore();
   const { getWeather } = useWeather();
   const [isLocating, setIsLocating] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
@@ -64,7 +64,6 @@ export default function SettingsModal() {
         </DialogHeader>
 
         <div className="flex flex-col gap-6">
-          {/* Theme Configuration */}
           <div className="space-y-3">
             <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
               Interface Theme
@@ -97,7 +96,6 @@ export default function SettingsModal() {
             </div>
           </div>
 
-          {/* Node recalibration */}
           <div className="space-y-3">
             <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
               Location Services
@@ -110,23 +108,6 @@ export default function SettingsModal() {
             >
               <LocateFixed className={`h-5 w-5 ${isLocating ? "animate-pulse text-primary" : ""}`} />
               {isLocating ? "Calibrating..." : "Sync to Current GPS Coordinates"}
-            </Button>
-          </div>
-
-          {/* Crisis Protocol */}
-          <div className="space-y-3">
-            <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
-              Emergency Systems
-            </span>
-            <Button
-              variant={isCrisisMode ? "destructive" : "secondary"}
-              className={`w-full justify-start gap-3 rounded-xl py-6 transition-all ${
-                isCrisisMode ? "shadow-lg shadow-destructive/20" : ""
-              }`}
-              onClick={() => toggleCrisisMode()}
-            >
-              <Activity className="h-5 w-5" />
-              {isCrisisMode ? "Disable Crisis Protocol" : "Initialize Crisis Protocol"}
             </Button>
           </div>
         </div>

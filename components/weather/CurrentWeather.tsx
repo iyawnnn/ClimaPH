@@ -27,7 +27,7 @@ const getWeatherIcon = (desc?: string) => {
 
 export default function CurrentWeather() {
   const { weather, loadingWeather } = useWeather();
-  const { targetLocation, unit, isCrisisMode, favorites, toggleFavorite } = useAppStore();
+  const { targetLocation, unit, favorites, toggleFavorite } = useAppStore();
 
   if (loadingWeather || !weather) {
     return <Skeleton className="w-full h-full min-h-[300px] md:min-h-[380px] rounded-[2rem] bg-muted/20 border-none" />;
@@ -50,7 +50,7 @@ export default function CurrentWeather() {
   const visibility = current?.visibility ? (current.visibility / 1000).toFixed(1) : (current?.vis_km ?? 0);
   const humidity = main?.humidity ?? current?.humidity ?? 0;
 
-  const themeColor = isCrisisMode ? "text-[#CE1126]" : "text-[#0038A8]";
+  const themeColor = "text-[#0038A8]";
   const isFavorited = targetLocation ? favorites.some((f) => f.display === targetLocation.display) : false;
 
   return (
