@@ -13,7 +13,6 @@ import { Button } from "@/components/ui/button";
 import { ModeToggle } from "@/components/ModeToggle";
 import { toast } from "sonner";
 import {
-  Activity,
   LocateFixed,
   Star,
   X,
@@ -23,7 +22,7 @@ import {
 import type { Suggestion } from "@/types/types";
 
 export default function SiteHeader() {
-  const { isCrisisMode, toggleCrisisMode, setTargetLocation, targetLocation, favorites } = useAppStore();
+  const { setTargetLocation, targetLocation, favorites } = useAppStore();
   const [isLocating, setIsLocating] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
@@ -201,11 +200,11 @@ export default function SiteHeader() {
 
               <div className="flex flex-col gap-1 px-4">
                 <span className="mb-2 text-xs font-bold uppercase tracking-widest text-muted-foreground font-sans">
-                  Anchored Nodes
+                  Saved Locations
                 </span>
                 {favorites.length === 0 ? (
                   <p className="text-sm font-medium text-muted-foreground/60 py-2">
-                    No coordinates saved.
+                    No locations saved.
                   </p>
                 ) : (
                   favorites.map((fav) => (
@@ -214,7 +213,7 @@ export default function SiteHeader() {
                       className="flex w-full items-center gap-3 rounded-xl py-3 px-2 text-left text-base font-medium text-foreground/80 transition-colors hover:bg-muted/30 hover:text-foreground outline-none font-sans"
                       onClick={() => handleSuggestionClick(fav)}
                     >
-                      <Star className="h-4 w-4 fill-[#FF6B00] text-[#FF6B00]" strokeWidth={0} />
+                      <Star className="h-4 w-4 fill-[#FCD116] text-[#FCD116]" strokeWidth={0} />
                       <span className="truncate">{fav.display}</span>
                     </button>
                   ))
@@ -229,24 +228,6 @@ export default function SiteHeader() {
                 </span>
                 <ModeToggle />
               </div>
-
-              <Button
-                variant={isCrisisMode ? "destructive" : "default"}
-                className={`h-14 w-full justify-center rounded-2xl text-sm font-bold tracking-wide shadow-lg transition-all font-sans ${
-                  isCrisisMode
-                    ? "shadow-destructive/30"
-                    : "bg-foreground text-background shadow-foreground/20 hover:bg-primary"
-                }`}
-                onClick={() => {
-                  toggleCrisisMode();
-                  setIsMenuOpen(false);
-                }}
-              >
-                <Activity className="mr-3 h-5 w-5" />
-                {isCrisisMode
-                  ? "Disable Crisis Protocol"
-                  : "Initialize Crisis Protocol"}
-              </Button>
             </div>
           </motion.div>
         )}

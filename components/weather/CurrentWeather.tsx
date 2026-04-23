@@ -57,7 +57,8 @@ export default function CurrentWeather() {
     <div className="flex flex-col justify-between h-full w-full relative z-10">
       <div className="flex justify-between items-start">
         <div className="flex flex-col z-10 w-[75%] gap-2">
-          <h2 className="text-xl md:text-2xl lg:text-3xl font-bold tracking-tight text-foreground font-sans leading-tight pr-2">
+          {/* Synchronized Title Size */}
+          <h2 className="text-lg md:text-xl lg:text-2xl font-bold tracking-tight text-foreground font-sans leading-tight pr-2">
             {targetLocation?.display || "Unknown Location"}
           </h2>
           
@@ -96,9 +97,10 @@ export default function CurrentWeather() {
       </div>
 
       <div className="relative z-10 mt-auto pt-4 pb-4 md:pb-6">
-        <div className="text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-bold tracking-tighter text-foreground font-sans leading-none">
+        {/* Synchronized Temperature Size */}
+        <div className="text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold tracking-tighter text-foreground font-sans leading-none drop-shadow-sm">
           {displayTemp}°
-          <span className="text-2xl md:text-3xl lg:text-4xl text-muted-foreground ml-1">{unit}</span>
+          <span className="text-xl md:text-2xl lg:text-3xl text-muted-foreground ml-1 drop-shadow-none">{unit}</span>
         </div>
         <div className="flex gap-4 mt-3">
           <span className="text-sm md:text-base font-semibold text-foreground tracking-wide font-sans">H: {displayHigh}°</span>

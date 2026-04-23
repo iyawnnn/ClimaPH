@@ -32,14 +32,12 @@ export default function ForecastCarousel() {
   const { unit } = useAppStore();
 
   if (loadingWeather || !fiveDayForecast) {
-    return <Skeleton className="w-full h-[220px] rounded-3xl bg-transparent" />;
+    return <Skeleton className="w-full h-[280px] rounded-3xl bg-transparent" />;
   }
 
-  // 1. Define the logical daily order
   const dailyOrder = ["Morning", "Afternoon", "Evening", "Night"];
   const periodMap = new Map();
 
-  // 2. Collect the next 4 distinct periods from the forecast
   for (const item of fiveDayForecast) {
     const date = new Date(item.dt * 1000);
     const hour = date.getHours();
@@ -66,13 +64,11 @@ export default function ForecastCarousel() {
     if (periodMap.size === 4) break;
   }
 
-  // 3. Sort the data into the defined daily order
   const realData = dailyOrder.map((p, index) => ({
     ...periodMap.get(p),
     x: index,
   }));
 
-  // 4. Create ghost points for the exceeding line effect
   const offset = 0.2;
   const chartData = [
     { x: -offset, temp: realData[0]?.temp, isGhost: true },
@@ -114,13 +110,13 @@ export default function ForecastCarousel() {
       <g key={`icon-group-${index}`} transform={`translate(${x},${y})`}>
         <circle
           cx={0}
-          cy={-50}
+          cy={-45}
           r={22}
           className={`${bgClass} transition-colors duration-300`}
         />
         <Icon
           x={-14}
-          y={-64}
+          y={-59}
           width={28}
           height={28}
           className={`${colorClass} drop-shadow-sm`}
@@ -131,20 +127,20 @@ export default function ForecastCarousel() {
   };
 
   return (
-    <div className="flex flex-col w-full h-full justify-center pt-2 overflow-hidden">
-      <h2 className="text-2xl md:text-3xl lg:text-4xl font-extrabold tracking-tight text-foreground mb-6">
+    <div className="flex flex-col w-full h-full justify-center pt-4 overflow-hidden">
+      <h2 className="text-2xl md:text-3xl lg:text-4xl font-extrabold tracking-tight text-foreground">
         How's the temperature today?
       </h2>
 
-      <div className="w-full h-[240px] md:h-[260px]">
+      <div className="w-full h-[260px] md:h-[280px]">
         <ChartContainer config={chartConfig} className="w-full h-full">
           <LineChart
             accessibilityLayer
             data={chartData}
             style={{ overflow: "visible" }}
-            margin={{ top: 0, left: 10, right: 10, bottom: 0 }}
+            margin={{ top: 90, left: 10, right: 10, bottom: 0 }}
           >
-            <YAxis hide domain={["dataMin - 15", "dataMax + 15"]} />
+            <YAxis hide domain={["dataMin - 5", "dataMax + 5"]} />
             <CartesianGrid vertical={false} horizontal={false} />
 
             <ReferenceLine
@@ -181,7 +177,6 @@ export default function ForecastCarousel() {
               tick={({ x, y, payload }: any) => {
                 const dataPoint = realData[payload.value];
 
-                // Return an empty SVG element instead of null to satisfy TypeScript
                 if (!dataPoint) return <g />;
 
                 return (

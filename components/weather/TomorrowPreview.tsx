@@ -52,7 +52,7 @@ export default function TomorrowPreview() {
   return (
     <div className="relative flex flex-col w-full h-full min-h-[250px] justify-between p-2 z-10">
       <div className="flex flex-col items-start text-left">
-        <h3 className="text-2xl font-bold tracking-tight text-foreground font-sans uppercase">
+        <h3 className="text-2xl font-bold tracking-tight text-foreground font-sans">
           Tomorrow
         </h3>
         <p className="text-sm font-medium text-muted-foreground font-sans mt-0.5">
@@ -61,10 +61,10 @@ export default function TomorrowPreview() {
       </div>
 
       <div className="flex flex-col items-end text-left mt-auto">
-        <span className="text-6xl font-bold tracking-tighter text-foreground font-sans leading-none">
+        <span className="text-5xl font-bold tracking-tighter text-foreground font-sans leading-none">
           {temp}°C
         </span>
-        <span className="text-sm font-bold text-foreground/80 uppercase tracking-widest font-sans mt-2">
+        <span className="text-md font-bold text-foreground/80 font-sans mt-2">
           {conditionText}
         </span>
       </div>
