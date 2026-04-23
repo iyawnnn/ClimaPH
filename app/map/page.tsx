@@ -1,45 +1,29 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useAppStore } from "@/store/useAppStore";
-import MapControls from "@/components/map/MapControls";
-import MapLegend from "@/components/MapLegend";
+import { Suspense } from "react";
+import { Skeleton } from "@/components/ui/skeleton";
+import MapFloatingControls from "@/components/map/MapFloatingControls";
 
 const WeatherMap = dynamic(
   () => import("@/components/weather/WeatherMap"),
   { 
     ssr: false,
-    loading: () => (
-      <div className="flex h-full w-full items-center justify-center bg-background/50 animate-pulse">
-        <span className="font-sans text-xs font-bold tracking-widest uppercase text-muted-foreground">
-          Establishing Satellite Uplink...
-        </span>
-      </div>
-    )
+    loading: () => <Skeleton className="w-full h-full rounded-none" />
   }
 );
 
 export default function MapPage() {
-  const { mapLayer } = useAppStore();
-
   return (
-    <div className="relative h-full w-full overflow-hidden bg-background">
-      
-      {/* Full Bleed Map Layer */}
-      <div className="absolute inset-0 z-0">
-        <WeatherMap />
-      </div>
+    // 'flex-1' and 'h-full' force the container to stretch perfectly to the bottom
+    <div className="relative w-full h-full min-h-[calc(100dvh-5rem)] flex-1 bg-background overflow-hidden rounded-none border-t border-border/20 isolate">
+      <Suspense fallback={<Skeleton className="w-full h-full rounded-none" />}>
+        <div className="absolute inset-0 z-0">
+          <WeatherMap />
+        </div>
+      </Suspense>
 
-      {/* Floating HUD - Top Left */}
-      <div className="absolute top-6 left-6 z-[400] pointer-events-auto">
-        <MapControls />
-      </div>
-
-      {/* Floating Legend - Bottom Right */}
-      <div className="absolute bottom-6 right-6 z-[400] pointer-events-auto bg-background/80 backdrop-blur-xl border border-border/20 rounded-xl overflow-hidden shadow-2xl">
-        <MapLegend layer={mapLayer as any} />
-      </div>
-
+      <MapFloatingControls />
     </div>
   );
 }
