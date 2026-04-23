@@ -2,45 +2,44 @@
 
 import dynamic from "next/dynamic";
 import { useAppStore } from "@/store/useAppStore";
-import { Layers } from "lucide-react";
+import MapControls from "@/components/map/MapControls";
+import MapLegend from "@/components/MapLegend";
 
 const WeatherMap = dynamic(
   () => import("@/components/weather/WeatherMap"),
   { 
     ssr: false,
     loading: () => (
-      <div className="w-full h-full flex items-center justify-center bg-card border border-border/20 rounded-3xl animate-pulse">
-        <span className="text-sm text-muted-foreground font-sans tracking-widest uppercase">Initializing Global Telemetry...</span>
+      <div className="flex h-full w-full items-center justify-center bg-background/50 animate-pulse">
+        <span className="font-sans text-xs font-bold tracking-widest uppercase text-muted-foreground">
+          Establishing Satellite Uplink...
+        </span>
       </div>
     )
   }
 );
 
 export default function MapPage() {
-  const { targetLocation } = useAppStore();
+  const { mapLayer } = useAppStore();
 
   return (
-    <div className="flex flex-col w-full h-full gap-6 pb-6">
+    <div className="relative h-full w-full overflow-hidden bg-background">
       
-      <header className="w-full flex items-center justify-between pb-4 border-b border-border/20 shrink-0">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-foreground font-sans">
-            Global Radar
-          </h1>
-          <p className="text-sm text-muted-foreground mt-1 font-sans">
-            Real-time environmental overlays for <span className="text-foreground font-medium">{targetLocation?.display || "your region"}</span>
-          </p>
-        </div>
-        
-        {/* You can optionally add a layer toggler here later */}
-        <button className="p-3 rounded-2xl bg-muted/20 border border-border/30 text-muted-foreground hover:text-foreground transition-all">
-          <Layers className="w-5 h-5" />
-        </button>
-      </header>
-
-      <div className="flex-1 w-full rounded-3xl bg-muted/10 border border-border/10 p-2 overflow-hidden relative">
+      {/* Full Bleed Map Layer */}
+      <div className="absolute inset-0 z-0">
         <WeatherMap />
       </div>
+
+      {/* Floating HUD - Top Left */}
+      <div className="absolute top-6 left-6 z-[400] pointer-events-auto">
+        <MapControls />
+      </div>
+
+      {/* Floating Legend - Bottom Right */}
+      <div className="absolute bottom-6 right-6 z-[400] pointer-events-auto bg-background/80 backdrop-blur-xl border border-border/20 rounded-xl overflow-hidden shadow-2xl">
+        <MapLegend layer={mapLayer as any} />
+      </div>
+
     </div>
   );
 }
