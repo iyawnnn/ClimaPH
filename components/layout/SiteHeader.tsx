@@ -12,7 +12,6 @@ import Suggestions from "@/components/search/Suggestions";
 import { Button } from "@/components/ui/button";
 import { ModeToggle } from "@/components/ModeToggle";
 import { toast } from "sonner";
-import { getFavorites } from "@/lib/favorites";
 import {
   Activity,
   LocateFixed,
@@ -24,15 +23,9 @@ import {
 import type { Suggestion } from "@/types/types";
 
 export default function SiteHeader() {
-  const { isCrisisMode, toggleCrisisMode, setTargetLocation, targetLocation } =
-    useAppStore();
+  const { isCrisisMode, toggleCrisisMode, setTargetLocation, targetLocation, favorites } = useAppStore();
   const [isLocating, setIsLocating] = useState(false);
-  const [favorites, setFavorites] = useState<Suggestion[]>([]);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-
-  useEffect(() => {
-    setFavorites(getFavorites());
-  }, []);
 
   useEffect(() => {
     if (isMenuOpen) {
@@ -45,8 +38,7 @@ export default function SiteHeader() {
     };
   }, [isMenuOpen]);
 
-  const { input, suggestions, onChange, pickSuggestion, setSuggestions } =
-    useSearch();
+  const { input, suggestions, onChange, pickSuggestion, setSuggestions } = useSearch();
   const { getWeather, loadingWeather } = useWeather();
 
   const handleCurrentLocation = () => {
@@ -78,7 +70,7 @@ export default function SiteHeader() {
 
   return (
     <>
-      <header className="sticky top-0 z-40 w-full border-b border-border/40 bg-background/80 backdrop-blur-xl supports-[backdrop-filter]:bg-background/60 shrink-0 lg:hidden">
+      <header className="sticky top-0 z-40 w-full border-b border-border/10 bg-background/80 backdrop-blur-xl supports-[backdrop-filter]:bg-background/60 shrink-0 lg:hidden">
         <div className="flex h-16 w-full items-center justify-between gap-4 px-4 md:px-6">
           <div
             className="flex shrink-0 cursor-pointer items-center transition-transform hover:scale-105"
@@ -95,7 +87,7 @@ export default function SiteHeader() {
           </div>
 
           <div className="relative flex flex-1 items-center justify-center max-w-2xl">
-            <div className="h-10 w-full rounded-xl border border-border/50 bg-background/50 backdrop-blur-md focus-within:border-primary/50 focus-within:bg-background transition-all">
+            <div className="h-10 w-full rounded-xl border border-border/20 bg-background/50 backdrop-blur-md focus-within:border-primary/50 focus-within:bg-background transition-all">
               <SearchBar
                 input={input}
                 onChange={(e) => onChange(e.target.value)}
@@ -114,7 +106,7 @@ export default function SiteHeader() {
                   transition={{ duration: 0.15 }}
                   className="absolute left-0 right-0 top-[calc(100%+8px)] shadow-2xl"
                 >
-                  <div className="overflow-hidden rounded-2xl border border-primary/20 bg-background/95 ring-1 ring-primary/10 backdrop-blur-2xl">
+                  <div className="overflow-hidden rounded-2xl border border-border/10 bg-background/95 ring-1 ring-border/5 backdrop-blur-2xl">
                     <Suggestions
                       suggestions={suggestions}
                       pickSuggestion={handleSuggestionClick}
@@ -130,7 +122,7 @@ export default function SiteHeader() {
               variant="ghost"
               size="icon"
               onClick={handleCurrentLocation}
-              className="h-10 w-10 rounded-xl text-foreground/70 transition-colors hover:bg-primary/10 hover:text-primary"
+              className="h-10 w-10 rounded-xl text-foreground/70 transition-colors hover:bg-muted/50 hover:text-foreground"
             >
               <LocateFixed className="h-[20px] w-[20px]" />
             </Button>
@@ -139,7 +131,7 @@ export default function SiteHeader() {
               variant="ghost"
               size="icon"
               onClick={() => setIsMenuOpen(true)}
-              className="flex h-10 w-10 items-center justify-center rounded-xl text-foreground transition-colors hover:bg-primary/10 hover:text-primary focus-visible:ring-0"
+              className="flex h-10 w-10 items-center justify-center rounded-xl text-foreground transition-colors hover:bg-muted/50 hover:text-foreground focus-visible:ring-0"
             >
               <svg
                 width="24"
@@ -191,7 +183,7 @@ export default function SiteHeader() {
               <Link
                 href="/"
                 onClick={() => setIsMenuOpen(false)}
-                className="flex items-center gap-4 rounded-xl px-4 py-4 text-lg font-semibold text-foreground/80 transition-all hover:bg-muted hover:text-foreground"
+                className="flex items-center gap-4 rounded-xl px-4 py-4 text-lg font-semibold text-foreground/80 transition-all hover:bg-muted/40 hover:text-foreground font-sans"
               >
                 <LayoutGrid className="h-5 w-5" />
                 Dashboard
@@ -199,30 +191,30 @@ export default function SiteHeader() {
               <Link
                 href="/map"
                 onClick={() => setIsMenuOpen(false)}
-                className="flex items-center gap-4 rounded-xl px-4 py-4 text-lg font-semibold text-foreground/80 transition-all hover:bg-muted hover:text-foreground"
+                className="flex items-center gap-4 rounded-xl px-4 py-4 text-lg font-semibold text-foreground/80 transition-all hover:bg-muted/40 hover:text-foreground font-sans"
               >
                 <Compass className="h-5 w-5" />
                 Global Radar
               </Link>
 
-              <div className="my-4 h-px w-full bg-border/40" />
+              <div className="my-4 h-px w-full bg-border/20" />
 
               <div className="flex flex-col gap-1 px-4">
-                <span className="mb-2 text-xs font-bold uppercase tracking-widest text-muted-foreground">
+                <span className="mb-2 text-xs font-bold uppercase tracking-widest text-muted-foreground font-sans">
                   Anchored Nodes
                 </span>
                 {favorites.length === 0 ? (
-                  <p className="text-sm font-medium text-muted-foreground/60">
+                  <p className="text-sm font-medium text-muted-foreground/60 py-2">
                     No coordinates saved.
                   </p>
                 ) : (
                   favorites.map((fav) => (
                     <button
                       key={fav.display}
-                      className="flex w-full items-center gap-3 rounded-lg py-3 text-left text-base font-medium text-foreground/80 transition-colors hover:text-foreground"
+                      className="flex w-full items-center gap-3 rounded-xl py-3 px-2 text-left text-base font-medium text-foreground/80 transition-colors hover:bg-muted/30 hover:text-foreground outline-none font-sans"
                       onClick={() => handleSuggestionClick(fav)}
                     >
-                      <Star className="h-4 w-4 text-secondary" />
+                      <Star className="h-4 w-4 fill-[#FF6B00] text-[#FF6B00]" strokeWidth={0} />
                       <span className="truncate">{fav.display}</span>
                     </button>
                   ))
@@ -231,8 +223,8 @@ export default function SiteHeader() {
             </nav>
 
             <div className="mt-auto pt-8">
-              <div className="mb-4 flex items-center justify-between rounded-2xl border border-border/40 bg-muted/20 px-5 py-4">
-                <span className="text-sm font-semibold tracking-tight text-foreground/80">
+              <div className="mb-4 flex items-center justify-between rounded-2xl border border-border/10 bg-muted/20 px-5 py-4">
+                <span className="text-sm font-semibold tracking-tight text-foreground/80 font-sans">
                   Interface Theme
                 </span>
                 <ModeToggle />
@@ -240,7 +232,7 @@ export default function SiteHeader() {
 
               <Button
                 variant={isCrisisMode ? "destructive" : "default"}
-                className={`h-14 w-full justify-center rounded-2xl text-sm font-bold tracking-wide shadow-lg transition-all ${
+                className={`h-14 w-full justify-center rounded-2xl text-sm font-bold tracking-wide shadow-lg transition-all font-sans ${
                   isCrisisMode
                     ? "shadow-destructive/30"
                     : "bg-foreground text-background shadow-foreground/20 hover:bg-primary"

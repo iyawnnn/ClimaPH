@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Instrument_Sans } from "next/font/google";
+import { Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/sonner";
 import { ThemeProvider } from "@/components/theme-provider";
@@ -8,9 +8,10 @@ import SiteHeader from "@/components/layout/SiteHeader";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import "leaflet/dist/leaflet.css";
 
-const instrumentSans = Instrument_Sans({
+// Using Plus Jakarta Sans as the optimal open-source alternative to Google Sans
+const jakartaSans = Plus_Jakarta_Sans({
   subsets: ["latin"],
-  variable: "--font-instrument-sans",
+  variable: "--font-sans",
   display: "swap",
 });
 
@@ -61,7 +62,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" suppressHydrationWarning className={instrumentSans.variable}>
+    <html lang="en" suppressHydrationWarning className={jakartaSans.variable}>
       <body className="font-sans antialiased h-screen w-full overflow-hidden bg-background text-foreground selection:bg-primary/30">
         <ThemeProvider
           attribute="class"
