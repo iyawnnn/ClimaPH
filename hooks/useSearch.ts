@@ -28,7 +28,7 @@ export const useSearch = () => {
       const url = `https://api.opencagedata.com/geocode/v1/json?q=${encodeURIComponent(query)}&key=${OPENCAGE_KEY}&countrycode=PH&limit=5`;
       const res = await fetch(url);
       const data = await res.json();
-      
+
       const safeSuggestions = (data.results || [])
         .filter(isValidSuggestion)
         .map((r: any) => ({
@@ -52,9 +52,9 @@ export const useSearch = () => {
   };
 
   const pickSuggestion = (suggestion: Suggestion) => {
-    setInput(suggestion.display);
+    setInput(suggestion.display || "");
     setSelected(suggestion);
-    setSuggestions([]); 
+    setSuggestions([]);
   };
 
   return {
