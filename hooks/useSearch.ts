@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import debounce from "lodash.debounce";
 import { Suggestion } from "@/types/types";
-import { env } from "@/lib/env";
 import { makeDisplayNameFromComponents, isValidSuggestion } from "@/lib/utils";
 
 export const useSearch = () => {
@@ -11,10 +10,9 @@ export const useSearch = () => {
   const [loadingSuggestions, setLoadingSuggestions] = useState(false);
 
   const fetchSuggestions = async (query: string) => {
-    if (!env.NEXT_PUBLIC_OPENCAGE_API_KEY) return;
     setLoadingSuggestions(true);
     try {
-      const url = `https://api.opencagedata.com/geocode/v1/json?q=${encodeURIComponent(query)}&key=${env.NEXT_PUBLIC_OPENCAGE_API_KEY}&countrycode=PH&limit=5`;
+      const url = `/api/geocode?q=${encodeURIComponent(query)}&limit=5`;
       const res = await fetch(url);
       const data = await res.json();
 

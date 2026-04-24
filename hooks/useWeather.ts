@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import useSWR from "swr";
 import { toast } from "sonner";
 import { useAppStore } from "@/store/useAppStore";
-import { env } from "@/lib/env";
 import { makeDisplayNameFromComponents, isValidSuggestion } from "@/lib/utils";
 
 const fetcher = async (url: string) => {
@@ -28,11 +27,11 @@ export const useWeather = () => {
   const hasValidCoordinates = target && safeLon !== undefined;
 
   const weatherUrl = hasValidCoordinates
-    ? `https://api.openweathermap.org/data/2.5/weather?lat=${target.lat}&lon=${safeLon}&appid=${env.NEXT_PUBLIC_OWM_API_KEY}&units=${systemUnit}`
+    ? `/api/weather?lat=${target.lat}&lon=${safeLon}&units=${systemUnit}&type=weather`
     : null;
 
   const forecastUrl = hasValidCoordinates
-    ? `https://api.openweathermap.org/data/2.5/forecast?lat=${target.lat}&lon=${safeLon}&appid=${env.NEXT_PUBLIC_OWM_API_KEY}&units=${systemUnit}`
+    ? `/api/weather?lat=${target.lat}&lon=${safeLon}&units=${systemUnit}&type=forecast`
     : null;
 
   const { data: rawWeather, error: weatherError, isLoading: loadingWeatherSWR } = useSWR(weatherUrl, fetcher, {
@@ -69,10 +68,10 @@ export const useWeather = () => {
     if (latInput && lonInput) {
       let display = displayNameInput || "Unknown Location";
       
-      if (!displayNameInput && env.NEXT_PUBLIC_OPENCAGE_API_KEY) {
+      if (!displayNameInput) {
         setIsGeocoding(true);
         try {
-          const url = `https://api.opencagedata.com/geocode/v1/json?q=${latInput},${lonInput}&key=${env.NEXT_PUBLIC_OPENCAGE_API_KEY}&countrycode=PH&limit=1`;
+          const url = `/api/geocode?q=${latInput},${lonInput}&limit=1`;
           const res = await fetch(url);
           const data = await res.json();
           const r = data?.results?.[0];
