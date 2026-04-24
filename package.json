@@ -53,6 +53,7 @@
   "devDependencies": {
     "@next/bundle-analyzer": "^16.2.4",
     "@tailwindcss/postcss": "^4",
+    "@types/lodash.debounce": "^4.0.9",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",

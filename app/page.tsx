@@ -119,10 +119,9 @@ export default function DashboardPage() {
     <>
       {!hasCompletedOnboarding && <WelcomeState />}
       
-      <div className="flex flex-col xl:flex-row w-full min-h-full font-sans">
+      <div className="w-full flex-1 grid grid-cols-1 xl:grid-cols-[1fr_340px] 2xl:grid-cols-[1fr_440px] font-sans items-stretch min-h-full">
         
-        {/* Left Column: Added explicit pb-12 and xl:pb-16 to guarantee bottom spacing */}
-        <div className="flex-1 flex flex-col min-w-0 bg-background p-4 md:p-6 lg:p-8 xl:p-10 pb-12 xl:pb-16">
+        <div className="flex flex-col min-w-0 bg-background p-4 md:p-6 lg:p-8 xl:p-10">
           <header className="w-full flex flex-col lg:flex-row lg:items-center justify-between gap-4 md:gap-6 shrink-0 mb-6 md:mb-8 xl:mb-10 mt-2 lg:mt-0">
             <div className="flex items-center gap-3 md:gap-4">
               <div className="relative w-12 h-12 md:w-14 md:h-14 rounded-full overflow-hidden shrink-0 shadow-sm border border-border/40">
@@ -229,8 +228,7 @@ export default function DashboardPage() {
           </main>
         </div>
 
-        {/* Right Column: Removed min-h-full to allow natural flex stretch, added matching pb */}
-        <aside className="w-full xl:w-[340px] 2xl:w-[440px] shrink-0 bg-muted/40 border-t xl:border-t-0 xl:border-l border-border/30 p-4 md:p-6 lg:p-8 xl:p-10 pb-12 xl:pb-16 flex flex-col gap-6 lg:gap-8 h-auto" aria-label="Secondary Weather Metrics">
+        <aside className="flex flex-col gap-6 lg:gap-8 bg-muted/40 border-t xl:border-t-0 xl:border-l border-border/30 p-4 pr-2 md:p-6 md:pr-4 lg:p-8 lg:pr-4 xl:p-10 xl:pr-6 h-full" aria-label="Secondary Weather Metrics">
           <section className="w-full shrink-0 flex items-center justify-center my-2 md:my-4" aria-label="Solar Progression">
             <Suspense fallback={<Skeleton className="w-[150px] h-[150px] rounded-full" />}>
               <SolarProgression />
@@ -247,7 +245,6 @@ export default function DashboardPage() {
             <h2 id="weather-prediction-heading" className="text-base md:text-lg font-semibold tracking-tight text-foreground mb-3 md:mb-4 shrink-0" style={{ fontFamily: "var(--font-sans), sans-serif" }}>
               Weather Prediction
             </h2>
-            {/* Removed overflow-y-auto and scrollbar-hide to prevent nested scroll conflicts */}
             <div className="w-full flex-1 pb-4">
               <Suspense fallback={<Skeleton className="w-full h-full flex-1 rounded-xl" />}>
                 <ProForecast />
