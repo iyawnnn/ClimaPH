@@ -30,7 +30,7 @@ export default function CurrentWeather() {
   const { targetLocation, unit, favorites, toggleFavorite } = useAppStore();
 
   if (loadingWeather || !weather) {
-    return <Skeleton className="w-full h-full min-h-[300px] md:min-h-[380px] rounded-[2rem] bg-muted/20 border-none" />;
+    return <Skeleton className="w-full h-full flex-1 rounded-xl bg-muted/20 border-none" />;
   }
 
   const current = weather.current || weather;
@@ -54,16 +54,15 @@ export default function CurrentWeather() {
   const isFavorited = targetLocation ? favorites.some((f) => f.display === targetLocation.display) : false;
 
   return (
-    <div className="flex flex-col justify-between h-full w-full relative z-10">
-      <div className="flex justify-between items-start">
-        <div className="flex flex-col z-10 w-[75%] gap-2">
-          {/* Synchronized Title Size */}
+    <div className="flex flex-col h-full w-full relative z-10">
+      <div className="flex justify-between items-start shrink-0">
+        <div className="flex flex-col z-10 w-[75%] gap-1.5 md:gap-2">
           <h2 className="text-lg md:text-xl lg:text-2xl font-bold tracking-tight text-foreground font-sans leading-tight pr-2">
             {targetLocation?.display || "Unknown Location"}
           </h2>
           
-          <div className="flex flex-wrap items-center gap-3">
-            <span className="text-sm md:text-base text-muted-foreground capitalize font-sans font-medium">
+          <div className="flex flex-wrap items-center gap-2 md:gap-3">
+            <span className="text-[13px] md:text-base text-muted-foreground capitalize font-sans font-medium">
               {description}
             </span>
             
@@ -72,10 +71,10 @@ export default function CurrentWeather() {
                 <div className="w-1 h-1 rounded-full bg-border/60" />
                 <button
                   onClick={() => toggleFavorite(targetLocation)}
-                  className="group flex items-center gap-1.5 text-xs md:text-sm font-semibold transition-all outline-none"
+                  className="group flex items-center gap-1.5 text-[11px] md:text-sm font-semibold transition-all outline-none"
                 >
                   <Star
-                    className={`w-3.5 h-3.5 transition-all duration-300 ${
+                    className={`w-3 h-3 md:w-3.5 md:h-3.5 transition-all duration-300 ${
                       isFavorited 
                         ? "fill-[#FCD116] text-[#FCD116]" 
                         : "text-muted-foreground group-hover:text-foreground"
@@ -96,19 +95,19 @@ export default function CurrentWeather() {
         </div>
       </div>
 
-      <div className="relative z-10 mt-auto pt-4 pb-4 md:pb-6">
-        {/* Synchronized Temperature Size */}
-        <div className="text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold tracking-tighter text-foreground font-sans leading-none drop-shadow-sm">
+      {/* Changed to flex-1 and justify-center to naturally distribute space */}
+      <div className="flex-1 flex flex-col justify-center relative z-10 py-4 md:py-6">
+        <div className="text-5xl md:text-6xl lg:text-7xl font-bold tracking-tighter text-foreground font-sans leading-none drop-shadow-sm">
           {displayTemp}°
           <span className="text-xl md:text-2xl lg:text-3xl text-muted-foreground ml-1 drop-shadow-none">{unit}</span>
         </div>
-        <div className="flex gap-4 mt-3">
-          <span className="text-sm md:text-base font-semibold text-foreground tracking-wide font-sans">H: {displayHigh}°</span>
-          <span className="text-sm md:text-base font-medium text-muted-foreground tracking-wide font-sans">L: {displayLow}°</span>
+        <div className="flex gap-3 md:gap-4 mt-2 md:mt-3">
+          <span className="text-[13px] md:text-base font-semibold text-foreground tracking-wide font-sans">H: {displayHigh}°</span>
+          <span className="text-[13px] md:text-base font-medium text-muted-foreground tracking-wide font-sans">L: {displayLow}°</span>
         </div>
       </div>
 
-      <div className="grid grid-cols-3 gap-2 md:gap-3 w-full mt-auto relative z-10">
+      <div className="grid grid-cols-3 gap-1.5 md:gap-3 w-full relative z-10 shrink-0">
         <CompactStat icon={Droplets} label="Humidity" value={`${humidity}%`} themeColor={themeColor} />
         <CompactStat icon={Gauge} label="Pressure" value={`${pressure} hPa`} themeColor={themeColor} />
         <CompactStat icon={Eye} label="Visibility" value={`${visibility} km`} themeColor={themeColor} />
@@ -119,12 +118,12 @@ export default function CurrentWeather() {
 
 function CompactStat({ icon: Icon, label, value, themeColor }: { icon: React.ElementType; label: string; value: string; themeColor: string; }) {
   return (
-    <div className="flex flex-col items-center justify-center text-center p-2.5 md:p-4 rounded-xl md:rounded-2xl bg-muted/30 border border-border/10 hover:bg-muted/50 transition-colors min-w-0">
-      <div className="flex items-center justify-center gap-1.5 md:gap-2 mb-2 w-full">
-        <Icon className={`w-3.5 h-3.5 md:w-4 md:h-4 shrink-0 ${themeColor}`} strokeWidth={2.5} />
-        <span className="text-[10px] md:text-xs font-bold text-muted-foreground uppercase tracking-widest leading-tight truncate font-sans">{label}</span>
+    <div className="flex flex-col items-center justify-center text-center p-2 md:p-4 rounded-[1rem] md:rounded-2xl bg-muted/30 border border-border/10 hover:bg-muted/50 transition-colors min-w-0">
+      <div className="flex items-center justify-center gap-1 md:gap-2 mb-1.5 md:mb-2 w-full">
+        <Icon className={`w-3 h-3 md:w-4 md:h-4 shrink-0 ${themeColor}`} strokeWidth={2.5} />
+        <span className="text-[9px] md:text-xs font-bold text-muted-foreground uppercase tracking-widest leading-tight truncate font-sans">{label}</span>
       </div>
-      <span className="text-base md:text-lg lg:text-xl font-bold text-foreground leading-none whitespace-nowrap tracking-tight font-sans">{value}</span>
+      <span className="text-[15px] md:text-lg lg:text-xl font-bold text-foreground leading-none whitespace-nowrap tracking-tight font-sans">{value}</span>
     </div>
   );
 }

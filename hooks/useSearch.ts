@@ -1,6 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
+import debounce from "lodash.debounce";
 import { Suggestion } from "@/types/types";
-import { OPENCAGE_KEY } from "@/lib/constants";
 import { makeDisplayNameFromComponents, isValidSuggestion } from "@/lib/utils";
 
 export const useSearch = () => {
@@ -9,23 +9,10 @@ export const useSearch = () => {
   const [selected, setSelected] = useState<Suggestion | null>(null);
   const [loadingSuggestions, setLoadingSuggestions] = useState(false);
 
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      if (input.length > 2 && !selected) {
-        fetchSuggestions(input);
-      } else if (input.length <= 2) {
-        setSuggestions([]);
-      }
-    }, 500);
-
-    return () => clearTimeout(timer);
-  }, [input, selected]);
-
   const fetchSuggestions = async (query: string) => {
-    if (!OPENCAGE_KEY) return;
     setLoadingSuggestions(true);
     try {
-      const url = `https://api.opencagedata.com/geocode/v1/json?q=${encodeURIComponent(query)}&key=${OPENCAGE_KEY}&countrycode=PH&limit=5`;
+      const url = `/api/geocode?q=${encodeURIComponent(query)}&limit=5`;
       const res = await fetch(url);
       const data = await res.json();
 
@@ -46,6 +33,22 @@ export const useSearch = () => {
     }
   };
 
+  const debouncedFetch = useMemo(
+    () => debounce((q: string) => fetchSuggestions(q), 500),
+    []
+  );
+
+  useEffect(() => {
+    if (input.length > 2 && !selected) {
+      debouncedFetch(input);
+    } else if (input.length <= 2) {
+      setSuggestions([]);
+      debouncedFetch.cancel();
+    }
+
+    return () => debouncedFetch.cancel();
+  }, [input, selected, debouncedFetch]);
+
   const onChange = (val: string) => {
     setInput(val);
     setSelected(null);
@@ -64,6 +67,6 @@ export const useSearch = () => {
     loadingSuggestions,
     onChange,
     pickSuggestion,
-    setSuggestions, // <--- IMPORTANT: Ensure this is here
+    setSuggestions,
   };
 };
