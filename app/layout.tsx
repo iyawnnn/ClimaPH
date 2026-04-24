@@ -2,7 +2,7 @@ import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
 import { Toaster } from "@/components/ui/sonner";
-import { ThemeProvider } from "@/components/theme-provider";
+import { ThemeProvider } from "@/components/providers/ThemeProvider";
 import { Sidebar } from "@/components/layout/Sidebar";
 import SiteHeader from "@/components/layout/SiteHeader";
 import { TooltipProvider } from "@/components/ui/tooltip";
