@@ -17,9 +17,6 @@ export default function WeatherMap() {
   const safeLon = targetLocation?.lon ?? (targetLocation as any)?.lng ?? defaultCenter.lon;
   const safeLat = targetLocation?.lat ?? defaultCenter.lat;
 
-  // CRITICAL: Ensure this variable is populated!
-  const weatherApiKey = process.env.NEXT_PUBLIC_OWM_API_KEY;
-
   if (!isMounted) return null;
 
   return (
@@ -34,13 +31,12 @@ export default function WeatherMap() {
         scrollZoom={true}
         style={{ width: "100%", height: "100%" }}
       >
-        {/* Dynamic Weather Layer */}
-        {mapLayer && weatherApiKey && (
+        {mapLayer && (
           <Source
-            key={mapLayer} // This key forces the map to remount the layer on change
+            key={mapLayer}
             id={`owm-${mapLayer}`}
             type="raster"
-            tiles={[`https://tile.openweathermap.org/map/${mapLayer}/{z}/{x}/{y}.png?appid=${weatherApiKey}`]}
+            tiles={[`/api/tiles/${mapLayer}/{z}/{x}/{y}`]}
             tileSize={256}
           >
             <Layer
