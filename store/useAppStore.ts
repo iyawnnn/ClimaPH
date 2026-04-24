@@ -23,8 +23,8 @@ export const useAppStore = create<AppState>()(
     (set, get) => ({
       targetLocation: null,
       unit: "C",
-      mapLayer: "wind_new", // Defaulted to wind
-      baseMap: "dark",      // Default base map
+      mapLayer: "wind_new",
+      baseMap: "dark",
       hasCompletedOnboarding: false,
       favorites: [],
 
@@ -36,10 +36,24 @@ export const useAppStore = create<AppState>()(
       
       toggleFavorite: (location) => {
         const currentFavorites = get().favorites;
-        const isFavorited = currentFavorites.some((f) => f.display === location.display);
         
-        if (isFavorited) {
-          set({ favorites: currentFavorites.filter((f) => f.display !== location.display) });
+        // 0.01 tolerance accounts for minor geocoding variations
+        const coordinateTolerance = 0.01;
+        
+        const existingIndex = currentFavorites.findIndex((f) => {
+          const fLon = f.lon ?? (f as any).lng;
+          const lLon = location.lon ?? (location as any).lng;
+          
+          const isLatMatch = Math.abs(f.lat - location.lat) < coordinateTolerance;
+          const isLonMatch = Math.abs(fLon - lLon) < coordinateTolerance;
+          
+          return isLatMatch && isLonMatch;
+        });
+        
+        if (existingIndex !== -1) {
+          const newFavorites = [...currentFavorites];
+          newFavorites.splice(existingIndex, 1);
+          set({ favorites: newFavorites });
           toast.info("Location Removed");
         } else {
           set({ favorites: [...currentFavorites, location] });

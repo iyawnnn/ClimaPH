@@ -90,7 +90,10 @@ export default function RootLayout({
               
               <div className="flex flex-1 flex-col min-w-0 h-full">
                 <SiteHeader />
-                <main className="flex-1 overflow-y-auto scroll-smooth z-10 will-change-scroll">
+                {/* Added relative, flex, flex-col, and min-h-0.
+                  This guarantees the main container strictly bounds any absolute or heavy children.
+                */}
+                <main className="relative flex flex-1 flex-col min-h-0 overflow-y-auto scroll-smooth z-10 will-change-scroll">
                   {children}
                 </main>
               </div>

@@ -43,9 +43,7 @@ export default function LifestyleGrid() {
   }, [targetLocation]);
 
   if (loadingWeather || !weather || realAqi === null) {
-    return (
-      <Skeleton className="w-full h-full min-h-[300px] md:min-h-[380px] rounded-[2rem] bg-muted/20 border-none" />
-    );
+    return <Skeleton className="w-full h-full flex-1 rounded-xl bg-muted/20 border-none" />;
   }
 
   const current = weather.current || weather;
@@ -80,13 +78,13 @@ export default function LifestyleGrid() {
   const aqiPercent = Math.min((aqiValue / 300) * 100, 100);
 
   return (
-    <div className="flex flex-col justify-between h-full w-full relative z-10">
-      <div className="flex justify-between items-start">
+    <div className="flex flex-col h-full w-full relative z-10">
+      <div className="flex justify-between items-start shrink-0">
         <div className="flex flex-col z-10 w-[70%]">
           <h2 className="text-lg md:text-xl lg:text-2xl font-bold tracking-tight text-foreground font-sans leading-tight truncate">
             Air Quality
           </h2>
-          <p className="text-sm md:text-base text-muted-foreground capitalize font-sans mt-1 truncate">
+          <p className="text-[13px] md:text-base text-muted-foreground capitalize font-sans mt-0.5 md:mt-1 truncate">
             Particulate Matter: PM2.5 ({pm25} µg/m³)
           </p>
         </div>
@@ -96,43 +94,44 @@ export default function LifestyleGrid() {
         />
       </div>
 
-      <div className="flex flex-col items-start justify-center flex-1 w-full z-10 mt-2 md:mt-4 mb-4 md:mb-6">
-        <div className="flex items-center gap-3 md:gap-4">
-          <div className="text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold tracking-tighter text-foreground font-sans leading-none drop-shadow-sm">
+      {/* Replaced strict margins with flex-1 center distribution */}
+      <div className="flex flex-col items-start justify-center flex-1 w-full z-10 py-4 md:py-6">
+        <div className="flex items-center gap-2.5 md:gap-4">
+          <div className="text-5xl md:text-6xl lg:text-7xl font-bold tracking-tighter text-foreground font-sans leading-none drop-shadow-sm">
             {aqiValue}
           </div>
           <div
-            className={`px-3 py-1.5 md:px-4 md:py-2 rounded-lg md:rounded-xl ${statusBg} ${statusColor} text-xs md:text-sm font-bold tracking-widest uppercase shadow-sm border border-border/20 font-sans`}
+            className={`px-2.5 py-1 md:px-4 md:py-2 rounded-md md:rounded-xl ${statusBg} ${statusColor} text-[10px] md:text-sm font-bold tracking-widest uppercase shadow-sm border border-border/20 font-sans`}
           >
             AQI
           </div>
         </div>
 
-        <div className="mt-3 md:mt-4 text-sm md:text-base font-medium text-muted-foreground font-sans flex items-center gap-1.5 md:gap-2">
-          <Wind className="w-4 h-4 md:w-5 md:h-5 opacity-70" strokeWidth={2} />
+        <div className="mt-2.5 md:mt-4 text-[13px] md:text-base font-medium text-muted-foreground font-sans flex items-center gap-1.5 md:gap-2">
+          <Wind className="w-3.5 h-3.5 md:w-5 md:h-5 opacity-70" strokeWidth={2} />
           {windDirection}
         </div>
       </div>
 
-      <div className="w-full mt-auto p-3 md:p-4 xl:p-5 rounded-xl md:rounded-2xl bg-muted/30 border border-border/40 flex flex-col shadow-sm z-10">
-        <div className="flex justify-between items-end mb-2 md:mb-3 font-sans">
-          <span className="text-[9px] md:text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+      <div className="w-full shrink-0 p-2.5 md:p-4 xl:p-5 rounded-[1rem] md:rounded-2xl bg-muted/30 border border-border/40 flex flex-col shadow-sm z-10">
+        <div className="flex justify-between items-end mb-1.5 md:mb-3 font-sans">
+          <span className="text-[8px] md:text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
             Good
           </span>
-          <span className="text-[9px] md:text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+          <span className="text-[8px] md:text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
             Hazardous
           </span>
         </div>
 
         <div
-          className="relative h-1.5 md:h-2 w-full rounded-full overflow-visible shadow-inner border border-border/20"
+          className="relative h-1 md:h-2 w-full rounded-full overflow-visible shadow-inner border border-border/20"
           style={{
             background:
               "linear-gradient(to right, rgba(245, 158, 11, 0.4), #f59e0b 50%, rgba(99, 102, 241, 0.8))",
           }}
         >
           <div
-            className="absolute top-1/2 w-3 h-3 md:w-4 md:h-4 bg-background border-[2.5px] md:border-[3px] border-[#f59e0b] rounded-full shadow-md transition-all duration-1000 ease-out z-20"
+            className="absolute top-1/2 w-2.5 h-2.5 md:w-4 md:h-4 bg-background border-[2px] md:border-[3px] border-[#f59e0b] rounded-full shadow-md transition-all duration-1000 ease-out z-20"
             style={{
               left: `${aqiPercent}%`,
               transform: "translate(-50%, -50%)",

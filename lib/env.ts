@@ -3,17 +3,15 @@ import { z } from "zod";
 
 export const env = createEnv({
   server: {
+    // These only exist on the server (Vercel/Node.js)
     OPENWEATHER_API_KEY: z.string().min(1),
     OPENCAGE_API_KEY: z.string().min(1),
   },
   client: {
-    NEXT_PUBLIC_OWM_API_KEY: z.string().min(1),
-    NEXT_PUBLIC_OPENCAGE_API_KEY: z.string().min(1),
+    // Keep this empty to ensure NO keys leak to the browser
   },
   runtimeEnv: {
     OPENWEATHER_API_KEY: process.env.OPENWEATHER_API_KEY,
     OPENCAGE_API_KEY: process.env.OPENCAGE_API_KEY,
-    NEXT_PUBLIC_OWM_API_KEY: process.env.NEXT_PUBLIC_OWM_API_KEY,
-    NEXT_PUBLIC_OPENCAGE_API_KEY: process.env.NEXT_PUBLIC_OPENCAGE_API_KEY,
   },
 });
