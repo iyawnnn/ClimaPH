@@ -11,12 +11,16 @@ const MAP_LAYERS = [
 ];
 
 export default function MapControls() {
-  const { targetLocation, mapLayer, setMapLayer, baseMap, setBaseMap } = useAppStore();
+  const { targetLocation, setTargetLocation, mapLayer, setMapLayer, baseMap, setBaseMap } = useAppStore();
 
   const handleRecalibrate = () => {
+    if (!targetLocation) return;
+    
     // Triggers a subtle re-render in the map component to snap back to center
     const current = targetLocation;
-    setTargetLocation(null);
+    
+    // Temporarily clear state to force the WebGL/Canvas to register a coordinate reset
+    setTargetLocation(null as any);
     setTimeout(() => setTargetLocation(current), 50);
   };
 

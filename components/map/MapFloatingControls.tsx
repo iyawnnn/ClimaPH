@@ -52,10 +52,10 @@ export default function MapFloatingControls() {
         <div className="pointer-events-auto flex flex-col gap-2 w-full md:w-auto">
           <div className="px-4 py-3 md:px-5 md:py-4 bg-background/80 backdrop-blur-xl border border-border/30 shadow-lg rounded-2xl flex justify-between items-center gap-4">
             <div>
-              <h1 className="text-lg md:text-2xl font-bold tracking-tight text-white uppercase">Global Radar</h1>
+              <h1 className="text-lg md:text-2xl font-bold tracking-tight text-foreground">Global Radar</h1>
               <p className="text-xs md:text-sm text-muted-foreground flex items-center gap-2 mt-1">
                 <MapPin className="w-3 h-3 md:w-4 md:h-4 text-[#FCD116]" />
-                <span className="truncate max-w-[200px] md:max-w-md text-white/90">
+                <span className="truncate max-w-[200px] md:max-w-md text-foreground/90">
                   {targetLocation?.display || "San Fernando, Pampanga, Philippines"}
                 </span>
               </p>
@@ -78,15 +78,15 @@ export default function MapFloatingControls() {
           <div className="p-4 bg-background/80 backdrop-blur-xl border border-border/30 shadow-lg flex flex-col gap-3 rounded-2xl">
             <div className="flex items-center gap-2 pb-2 border-b border-border/20">
               <Activity className="w-4 h-4 text-[#0038A8]" />
-              <span className="text-sm font-bold tracking-tight text-white uppercase">Real-Time Telemetry</span>
+              <span className="text-sm font-bold tracking-tight text-foreground">Real-Time Telemetry</span>
             </div>
             <div className="flex justify-between items-center">
               <span className="text-xs text-muted-foreground uppercase tracking-widest font-bold">LAT</span>
-              <span className="text-sm font-semibold text-white">{targetLocation?.lat?.toFixed(4) || "15.0286"}°</span>
+              <span className="text-sm font-semibold text-foreground">{targetLocation?.lat?.toFixed(4) || "15.0286"}°</span>
             </div>
             <div className="flex justify-between items-center">
               <span className="text-xs text-muted-foreground uppercase tracking-widest font-bold">LON</span>
-              <span className="text-sm font-semibold text-white">{(targetLocation?.lon ?? (targetLocation as any)?.lng)?.toFixed(4) || "120.6925"}°</span>
+              <span className="text-sm font-semibold text-foreground">{(targetLocation?.lon ?? (targetLocation as any)?.lng)?.toFixed(4) || "120.6925"}°</span>
             </div>
           </div>
         </div>
@@ -111,7 +111,7 @@ export default function MapFloatingControls() {
                   className={`flex items-center justify-center gap-2 px-3 py-2 md:px-4 md:py-3 transition-all duration-200 rounded-xl md:rounded-2xl shrink-0 ${
                     isActive 
                       ? "bg-[#0038A8] text-white shadow-md" 
-                      : "bg-transparent text-muted-foreground hover:bg-muted/50 hover:text-white"
+                      : "bg-transparent text-muted-foreground hover:bg-muted/50 hover:text-foreground"
                   }`}
                 >
                   <Icon className="w-4 h-4 shrink-0" />
