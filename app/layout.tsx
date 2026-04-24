@@ -6,7 +6,6 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { Sidebar } from "@/components/layout/Sidebar";
 import SiteHeader from "@/components/layout/SiteHeader";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import "leaflet/dist/leaflet.css";
 
 const googleSans = localFont({
   src: [

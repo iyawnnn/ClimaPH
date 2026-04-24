@@ -1,96 +1,117 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
-import "leaflet/dist/leaflet.css";
+import { useEffect, useState, useMemo } from "react";
+import Map, { Marker } from "react-map-gl/maplibre";
+import "maplibre-gl/dist/maplibre-gl.css";
 import { useAppStore } from "@/store/useAppStore";
-import L from "leaflet";
-
-// Fix Leaflet's default icon path issues in Next.js environments
-const customIcon = L.icon({
-  iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
-  iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
-  shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
-});
-
-// Helper component to smoothly pan the map when coordinates change
-function MapUpdater({ center }: { center: [number, number] }) {
-  const map = useMap();
-  useEffect(() => {
-    map.setView(center, map.getZoom(), { animate: true, duration: 1 });
-  }, [center, map]);
-  return null;
-}
 
 export default function WeatherMap() {
   const { targetLocation, mapLayer } = useAppStore();
   const [isMounted, setIsMounted] = useState(false);
-  const [mapKey] = useState(() => `map-${Math.random().toString(36).substring(2, 9)}`);
 
   useEffect(() => {
     setIsMounted(true);
   }, []);
 
+  const defaultCenter = { lat: 15.0286, lon: 120.6925 };
+  
+  const safeLon = targetLocation?.lon ?? (targetLocation as any)?.lng ?? defaultCenter.lon;
+  const safeLat = targetLocation?.lat ?? defaultCenter.lat;
+
+  const weatherApiKey = process.env.NEXT_PUBLIC_OWM_API_KEY;
+
+  const mapStyle = useMemo(() => {
+    const style: any = {
+      version: 8,
+      sources: {
+        "carto-basemap": {
+          type: "raster",
+          tiles: ["https://a.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}@2x.png"],
+          tileSize: 256,
+        },
+      },
+      layers: [
+        {
+          id: "carto-basemap-layer",
+          type: "raster",
+          source: "carto-basemap",
+          minzoom: 0,
+          maxzoom: 22,
+        },
+      ],
+    };
+
+    if (mapLayer && weatherApiKey) {
+      style.sources["owm-weather"] = {
+        type: "raster",
+        tiles: [`https://tile.openweathermap.org/map/${mapLayer}/{z}/{x}/{y}.png?appid=${weatherApiKey}`],
+        tileSize: 256,
+      };
+      
+      style.layers.push({
+        id: "owm-weather-layer",
+        type: "raster",
+        source: "owm-weather",
+        paint: {
+          "raster-opacity": 0.6,
+        },
+      });
+    }
+
+    return style;
+  }, [mapLayer, weatherApiKey]);
+
   if (!isMounted) {
     return (
-      <div className="h-full w-full flex items-center justify-center bg-muted/30">
-        <div className="flex flex-col items-center gap-3 animate-pulse">
-          <div className="w-6 h-6 rounded-full border-2 border-primary border-t-transparent animate-spin" />
-          <span className="text-xs font-medium tracking-widest uppercase text-muted-foreground font-sans">
-            Initializing Telemetry
-          </span>
-        </div>
+      <div className="h-full w-full flex items-center justify-center bg-background border-none rounded-none">
+        <span 
+          className="text-xs font-bold tracking-widest uppercase text-muted-foreground" 
+          style={{ fontFamily: "var(--font-instrument-sans), sans-serif" }}
+        >
+          Initializing Telemetry
+        </span>
       </div>
     );
   }
 
-  const defaultCenter: [number, number] = [14.5995, 120.9842]; // Metro Manila
-
-  // Robustly handle both 'lon' (OpenWeather) and 'lng' (OpenCage) data structures
-  const safeLon = targetLocation?.lon ?? (targetLocation as any)?.lng ?? defaultCenter[1];
-  const safeLat = targetLocation?.lat ?? defaultCenter[0];
-  
-  const center: [number, number] = [safeLat, safeLon];
-
-  // Match the exact environment variable from your .env configuration
-  const weatherApiKey = process.env.NEXT_PUBLIC_OWM_API_KEY;
-
   return (
-    <div className="h-full w-full relative z-0" id="weather-map-root">
-      <MapContainer
-        key={mapKey}
-        center={center}
-        zoom={11}
-        zoomControl={false}
-        className="h-full w-full rounded-3xl bg-muted/10 z-0"
+    <div className="h-full w-full relative z-0 bg-background" id="weather-map-root">
+      <Map
+        initialViewState={{
+          longitude: safeLon,
+          latitude: safeLat,
+          zoom: 11,
+        }}
+        longitude={safeLon}
+        latitude={safeLat}
+        mapStyle={mapStyle}
+        interactive={true}
+        dragPan={true}
+        dragRotate={false}
+        scrollZoom={true}
+        style={{ width: "100%", height: "100%" }}
       >
-        <TileLayer
-          attribution='&copy; <a href="https://carto.com/">CartoDB</a>'
-          url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
-        />
-        
-        {mapLayer && weatherApiKey && (
-          <TileLayer
-            url={`https://tile.openweathermap.org/map/${mapLayer}/{z}/{x}/{y}.png?appid=${weatherApiKey}`}
-            opacity={0.6}
-            className="mix-blend-multiply"
-          />
-        )}
-        
-        <Marker position={center} icon={customIcon}>
-          <Popup className="font-sans rounded-xl border-border/20 shadow-xl">
-            <span className="font-semibold text-sm">
-              {targetLocation?.display || "Metro Manila"}
-            </span>
-          </Popup>
+        <Marker 
+          longitude={safeLon} 
+          latitude={safeLat} 
+          anchor="center"
+        >
+          <div className="relative flex items-center justify-center cursor-pointer group">
+            <div className="absolute w-8 h-8 bg-[#FCD116]/40 rounded-full animate-ping" />
+            
+            <div className="relative w-5 h-5 bg-[#0038A8] border-2 border-white rounded-full shadow-md z-10 transition-transform group-hover:scale-110" />
+            
+            <div 
+              className="absolute top-full mt-2 px-3 py-1 bg-background/90 backdrop-blur-sm border border-border/40 shadow-lg rounded pointer-events-none whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity z-20"
+              style={{ fontFamily: "var(--font-instrument-sans), sans-serif" }}
+            >
+              <span className="font-bold text-xs text-foreground">
+                {targetLocation?.display || "San Fernando, Pampanga, Philippines"}
+              </span>
+            </div>
+          </div>
         </Marker>
-        
-        <MapUpdater center={center} />
-      </MapContainer>
-      
-      <div className="absolute inset-0 pointer-events-none rounded-3xl shadow-[inset_0_0_20px_rgba(0,0,0,0.05)] z-10" />
+      </Map>
     </div>
   );
 }
