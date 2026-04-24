@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import useSWR from "swr";
 import { toast } from "sonner";
 import { useAppStore } from "@/store/useAppStore";
-import { OPENCAGE_KEY, OWM_KEY } from "@/lib/constants";
+import { env } from "@/lib/env";
 import { makeDisplayNameFromComponents, isValidSuggestion } from "@/lib/utils";
 
 const fetcher = async (url: string) => {
@@ -17,19 +17,22 @@ const fetcher = async (url: string) => {
 export const useWeather = () => {
   const target = useAppStore((state) => state.targetLocation);
   const setTarget = useAppStore((state) => state.setTargetLocation);
+  const unit = useAppStore((state) => state.unit);
   
   const [error, setError] = useState("");
   const [isGeocoding, setIsGeocoding] = useState(false);
 
-  // Extract longitude aggressively across different coordinate object standards
-  const safeLon = target ? ((target as any).lon ?? target.lng ?? (target as any).longitude) : undefined;
+  const safeLon = target ? ((target as any).lon ?? (target as any).lng ?? (target as any).longitude) : undefined;
+  const systemUnit = unit === "C" ? "metric" : "imperial";
 
-  const weatherUrl = target && safeLon !== undefined && OWM_KEY
-    ? `https://api.openweathermap.org/data/2.5/weather?lat=${target.lat}&lon=${safeLon}&appid=${OWM_KEY}&units=metric`
+  const hasValidCoordinates = target && safeLon !== undefined;
+
+  const weatherUrl = hasValidCoordinates
+    ? `https://api.openweathermap.org/data/2.5/weather?lat=${target.lat}&lon=${safeLon}&appid=${env.NEXT_PUBLIC_OWM_API_KEY}&units=${systemUnit}`
     : null;
 
-  const forecastUrl = target && safeLon !== undefined && OWM_KEY
-    ? `https://api.openweathermap.org/data/2.5/forecast?lat=${target.lat}&lon=${safeLon}&appid=${OWM_KEY}&units=metric`
+  const forecastUrl = hasValidCoordinates
+    ? `https://api.openweathermap.org/data/2.5/forecast?lat=${target.lat}&lon=${safeLon}&appid=${env.NEXT_PUBLIC_OWM_API_KEY}&units=${systemUnit}`
     : null;
 
   const { data: rawWeather, error: weatherError, isLoading: loadingWeatherSWR } = useSWR(weatherUrl, fetcher, {
@@ -66,10 +69,10 @@ export const useWeather = () => {
     if (latInput && lonInput) {
       let display = displayNameInput || "Unknown Location";
       
-      if (!displayNameInput && OPENCAGE_KEY) {
+      if (!displayNameInput && env.NEXT_PUBLIC_OPENCAGE_API_KEY) {
         setIsGeocoding(true);
         try {
-          const url = `https://api.opencagedata.com/geocode/v1/json?q=${latInput},${lonInput}&key=${OPENCAGE_KEY}&countrycode=PH&limit=1`;
+          const url = `https://api.opencagedata.com/geocode/v1/json?q=${latInput},${lonInput}&key=${env.NEXT_PUBLIC_OPENCAGE_API_KEY}&countrycode=PH&limit=1`;
           const res = await fetch(url);
           const data = await res.json();
           const r = data?.results?.[0];
@@ -77,7 +80,7 @@ export const useWeather = () => {
             display = makeDisplayNameFromComponents(r?.components, r?.formatted) || "Unknown Location";
           }
         } catch (e) {
-          // Proceed with "Unknown Location" on error
+          console.error("Geocoding failed", e);
         }
         setIsGeocoding(false);
       }

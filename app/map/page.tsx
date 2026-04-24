@@ -9,15 +9,14 @@ const WeatherMap = dynamic(
   () => import("@/components/weather/WeatherMap"),
   { 
     ssr: false,
-    loading: () => <Skeleton className="w-full h-full rounded-none" />
+    loading: () => <Skeleton className="w-full h-full rounded-none bg-primary/10" />
   }
 );
 
 export default function MapPage() {
   return (
-    // 'flex-1' and 'h-full' force the container to stretch perfectly to the bottom
-    <div className="relative w-full h-full min-h-[calc(100dvh-5rem)] flex-1 bg-background overflow-hidden rounded-none border-t border-border/20 isolate">
-      <Suspense fallback={<Skeleton className="w-full h-full rounded-none" />}>
+    <div className="relative flex-1 w-full min-h-0 bg-background overflow-hidden border-t border-border/20 isolate">
+      <Suspense fallback={<Skeleton className="w-full h-full rounded-none bg-primary/10" />}>
         <div className="absolute inset-0 z-0">
           <WeatherMap />
         </div>
