@@ -10,7 +10,7 @@ import { useWeather } from "@/hooks/useWeather";
 import SearchBar from "@/components/search/SearchBar";
 import Suggestions from "@/components/search/Suggestions";
 import { Button } from "@/components/ui/button";
-import { ModeToggle } from "@/components/ModeToggle";
+import { ModeToggle } from "@/components/layout/ModeToggle";
 import { toast } from "sonner";
 import {
   LocateFixed,

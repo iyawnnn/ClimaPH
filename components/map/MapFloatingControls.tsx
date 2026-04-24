@@ -29,7 +29,6 @@ export default function MapFloatingControls() {
     
     navigator.geolocation.getCurrentPosition(
       (pos) => {
-        // Automatically triggers OpenCage reverse-geocoding via the hook
         getWeather(pos.coords.latitude, pos.coords.longitude);
         setIsLocating(false);
         toast.success("Location updated securely.");
@@ -64,14 +63,13 @@ export default function MapFloatingControls() {
               onClick={handleCurrentLocation}
               disabled={isLocating}
               className="p-2.5 md:p-3 rounded-xl md:rounded-full bg-primary text-primary-foreground hover:opacity-90 transition-all shadow-md flex-shrink-0 focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary"
-              aria-label="Use Current Location"
             >
               <LocateFixed className={`w-4 h-4 md:w-5 md:h-5 ${isLocating ? "animate-spin text-secondary" : ""}`} />
             </button>
           </div>
         </div>
 
-        {/* Telemetry Block (Hidden on Mobile to maximize map visibility) */}
+        {/* Telemetry Block (Hidden on Mobile) */}
         <div className="pointer-events-auto hidden md:flex flex-col gap-3 w-64 lg:w-72">
           <div className="p-4 bg-white dark:bg-slate-900 shadow-xl flex flex-col gap-3 rounded-[1.5rem] border border-border/20">
             <div className="flex items-center gap-2 pb-2 border-b border-border/10">
@@ -90,7 +88,7 @@ export default function MapFloatingControls() {
         </div>
       </div>
 
-      {/* Bottom Section */}
+      {/* Bottom Section - Layer Controls */}
       <div className="flex justify-center md:justify-start items-end w-full mt-auto pt-2 md:pt-4">
         <div className="pointer-events-auto flex items-center gap-1 md:gap-2 p-1.5 md:p-2 bg-white dark:bg-slate-900 shadow-2xl w-full md:w-auto rounded-2xl md:rounded-[1.5rem] overflow-x-auto scrollbar-hide border border-border/20">
           <div className="px-2 md:px-3 border-r border-border/10 hidden md:flex items-center justify-center shrink-0">
