@@ -51,8 +51,9 @@ export function SavedLocationsModal() {
                 className="group relative flex items-center justify-between rounded-xl p-2 transition-all duration-300 hover:bg-muted/50 border border-transparent hover:border-border/10"
               >
                 <DialogTrigger asChild>
+                  {/* Added min-w-0 to allow the container to shrink and enforce truncation */}
                   <button
-                    className="flex flex-1 items-center gap-3 text-sm font-medium text-foreground/80 transition-colors group-hover:text-foreground outline-none text-left rounded-lg px-2 py-1.5 focus-visible:ring-2 focus-visible:ring-[#0038A8]/30"
+                    className="flex flex-1 min-w-0 items-center gap-3 text-sm font-medium text-foreground/80 transition-colors group-hover:text-foreground outline-none text-left rounded-lg px-2 py-1.5 focus-visible:ring-2 focus-visible:ring-[#0038A8]/30"
                     onClick={() => setTargetLocation(fav)}
                   >
                     <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-muted/40 transition-colors group-hover:bg-[#0038A8]/10 shrink-0">
