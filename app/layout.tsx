@@ -30,16 +30,24 @@ const googleSans = localFont({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://climaph.iansebastian.dev"),
   title: {
-    default: "ClimaPH",
+    default: "ClimaPH | Weather for the Philippines",
     template: "%s | ClimaPH",
   },
-  description: "High-performance environmental telemetry and weather dashboard for the Philippines. Features real-time localized emergency alerts and atmospheric monitoring.",
-  keywords: ["weather", "Philippines", "telemetry", "emergency alerts", "ClimaPH", "radar"],
+  description: "Get real-time weather updates and typhoon tracking for the Philippines. ClimaPH provides accurate local forecasts, interactive radar maps, and fast emergency alerts to keep you prepared and safe.",
+  keywords: [
+    "Philippine weather",
+    "typhoon tracker",
+    "live weather radar Philippines",
+    "local weather forecast",
+    "rain map",
+    "weather alerts",
+    "ClimaPH"
+  ],
   openGraph: {
-    title: "ClimaPH",
-    description: "High-performance environmental telemetry and weather dashboard for the Philippines.",
+    title: "ClimaPH | Weather for the Philippines",
+    description: "Get real-time weather updates and typhoon tracking for the Philippines. View accurate local forecasts and interactive radar maps.",
     url: "/",
     siteName: "ClimaPH",
     locale: "en_PH",
@@ -47,8 +55,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "ClimaPH",
-    description: "High-performance environmental telemetry and weather dashboard for the Philippines.",
+    title: "ClimaPH | Weather for the Philippines",
+    description: "Get real-time weather updates and typhoon tracking for the Philippines. View accurate local forecasts and interactive radar maps.",
   },
   icons: {
     icon: "/icon.svg",
@@ -90,9 +98,6 @@ export default function RootLayout({
               
               <div className="flex flex-1 flex-col min-w-0 h-full">
                 <SiteHeader />
-                {/* Added relative, flex, flex-col, and min-h-0.
-                  This guarantees the main container strictly bounds any absolute or heavy children.
-                */}
                 <main className="relative flex flex-1 flex-col min-h-0 overflow-y-auto scroll-smooth z-10 will-change-scroll">
                   {children}
                 </main>
